@@ -1,0 +1,21 @@
+{
+  "data": {
+    "id": "0aa9f571-f819-4fba-b440-faa594a1a321",
+    "boat_id": "e708ee46-72b7-473a-a30c-80e44ab37efa",
+    "trip_code": "TRIP-2026-MOBILE-001",
+    "client_record_id": "9cf53543-2582-4f4a-b62a-4c21e7cfc2a3",
+    "status": "ACTIVE",
+    "general_catch_area": "17.6858, 83.2185",
+    "planned_departure_at": "2026-08-08T01:00:00.000000Z",
+    "expected_duration_hours": "12.00",
+    "fishing_area_latitude": "17.6858000",
+    "fishing_area_longitude": "83.2185000",
+    "notes": "Mobile trip notes",
+    "departed_at": "2026-08-08T01:01:00.000000Z",
+    "crew": ["Alex Johnson", "M. Kumar"],
+    "catch_kg": "40.000",
+    "catch_count": 1,
+    "batch_count": 1,
+    "boat": {"id": "e708ee46-72b7-473a-a30c-80e44ab37efa", "name": "Sea Light"}
+  }
+}

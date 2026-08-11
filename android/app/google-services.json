@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "521686955983",
+    "firebase_url": "https://fishtrace-1edac-default-rtdb.firebaseio.com",
+    "project_id": "fishtrace-1edac",
+    "storage_bucket": "fishtrace-1edac.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:521686955983:android:515a1e382354b8a60244ba",
+        "android_client_info": {
+          "package_name": "com.example.fishtrace"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDMrz3HnR08UBa0XcoAGbGzx_MnqG88LwQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -1,0 +1,19 @@
+{
+  "data": {
+    "id": "58c7f577-95a8-42b0-a21b-c47e393a6004",
+    "fishing_trip_id": "0aa9f571-f819-4fba-b440-faa594a1a321",
+    "fish_species_id": "9d4d7838-e322-40eb-84ee-0c9c745876a9",
+    "weight_kg": "40.000",
+    "quantity": 2,
+    "condition": "GOOD",
+    "latitude": "17.6860000",
+    "longitude": "83.2190000",
+    "notes": "Mobile catch notes",
+    "verified": true,
+    "caught_at": "2026-08-08T02:00:00.000000Z",
+    "species": {"common_name": "Yellowfin Tuna", "scientific_name": "Thunnus albacares"},
+    "gear": {"name": "Longline"},
+    "images": [],
+    "batches": []
+  }
+}
