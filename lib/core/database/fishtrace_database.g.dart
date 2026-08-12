@@ -2741,6 +2741,28 @@ class $FishingTripRowsTable extends FishingTripRows
     type: DriftSqlType.string,
     requiredDuringInsert: true,
   );
+  static const VerificationMeta _latitudeMeta = const VerificationMeta(
+    'latitude',
+  );
+  @override
+  late final GeneratedColumn<double> latitude = GeneratedColumn<double>(
+    'latitude',
+    aliasedName,
+    true,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _longitudeMeta = const VerificationMeta(
+    'longitude',
+  );
+  @override
+  late final GeneratedColumn<double> longitude = GeneratedColumn<double>(
+    'longitude',
+    aliasedName,
+    true,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _crewJsonMeta = const VerificationMeta(
     'crewJson',
   );
@@ -2852,6 +2874,8 @@ class $FishingTripRowsTable extends FishingTripRows
     boatName,
     startedAt,
     fishingArea,
+    latitude,
+    longitude,
     crewJson,
     catchKg,
     batchCount,
@@ -2922,6 +2946,18 @@ class $FishingTripRowsTable extends FishingTripRows
       );
     } else if (isInserting) {
       context.missing(_fishingAreaMeta);
+    }
+    if (data.containsKey('latitude')) {
+      context.handle(
+        _latitudeMeta,
+        latitude.isAcceptableOrUnknown(data['latitude']!, _latitudeMeta),
+      );
+    }
+    if (data.containsKey('longitude')) {
+      context.handle(
+        _longitudeMeta,
+        longitude.isAcceptableOrUnknown(data['longitude']!, _longitudeMeta),
+      );
     }
     if (data.containsKey('crew_json')) {
       context.handle(
@@ -3014,6 +3050,14 @@ class $FishingTripRowsTable extends FishingTripRows
         DriftSqlType.string,
         data['${effectivePrefix}fishing_area'],
       )!,
+      latitude: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}latitude'],
+      ),
+      longitude: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}longitude'],
+      ),
       crewJson: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}crew_json'],
@@ -3066,6 +3110,8 @@ class FishingTripRow extends DataClass implements Insertable<FishingTripRow> {
   final String boatName;
   final DateTime startedAt;
   final String fishingArea;
+  final double? latitude;
+  final double? longitude;
   final String crewJson;
   final double catchKg;
   final int batchCount;
@@ -3082,6 +3128,8 @@ class FishingTripRow extends DataClass implements Insertable<FishingTripRow> {
     required this.boatName,
     required this.startedAt,
     required this.fishingArea,
+    this.latitude,
+    this.longitude,
     required this.crewJson,
     required this.catchKg,
     required this.batchCount,
@@ -3103,6 +3151,12 @@ class FishingTripRow extends DataClass implements Insertable<FishingTripRow> {
     map['boat_name'] = Variable<String>(boatName);
     map['started_at'] = Variable<DateTime>(startedAt);
     map['fishing_area'] = Variable<String>(fishingArea);
+    if (!nullToAbsent || latitude != null) {
+      map['latitude'] = Variable<double>(latitude);
+    }
+    if (!nullToAbsent || longitude != null) {
+      map['longitude'] = Variable<double>(longitude);
+    }
     map['crew_json'] = Variable<String>(crewJson);
     map['catch_kg'] = Variable<double>(catchKg);
     map['batch_count'] = Variable<int>(batchCount);
@@ -3127,6 +3181,12 @@ class FishingTripRow extends DataClass implements Insertable<FishingTripRow> {
       boatName: Value(boatName),
       startedAt: Value(startedAt),
       fishingArea: Value(fishingArea),
+      latitude: latitude == null && nullToAbsent
+          ? const Value.absent()
+          : Value(latitude),
+      longitude: longitude == null && nullToAbsent
+          ? const Value.absent()
+          : Value(longitude),
       crewJson: Value(crewJson),
       catchKg: Value(catchKg),
       batchCount: Value(batchCount),
@@ -3153,6 +3213,8 @@ class FishingTripRow extends DataClass implements Insertable<FishingTripRow> {
       boatName: serializer.fromJson<String>(json['boatName']),
       startedAt: serializer.fromJson<DateTime>(json['startedAt']),
       fishingArea: serializer.fromJson<String>(json['fishingArea']),
+      latitude: serializer.fromJson<double?>(json['latitude']),
+      longitude: serializer.fromJson<double?>(json['longitude']),
       crewJson: serializer.fromJson<String>(json['crewJson']),
       catchKg: serializer.fromJson<double>(json['catchKg']),
       batchCount: serializer.fromJson<int>(json['batchCount']),
@@ -3174,6 +3236,8 @@ class FishingTripRow extends DataClass implements Insertable<FishingTripRow> {
       'boatName': serializer.toJson<String>(boatName),
       'startedAt': serializer.toJson<DateTime>(startedAt),
       'fishingArea': serializer.toJson<String>(fishingArea),
+      'latitude': serializer.toJson<double?>(latitude),
+      'longitude': serializer.toJson<double?>(longitude),
       'crewJson': serializer.toJson<String>(crewJson),
       'catchKg': serializer.toJson<double>(catchKg),
       'batchCount': serializer.toJson<int>(batchCount),
@@ -3193,6 +3257,8 @@ class FishingTripRow extends DataClass implements Insertable<FishingTripRow> {
     String? boatName,
     DateTime? startedAt,
     String? fishingArea,
+    Value<double?> latitude = const Value.absent(),
+    Value<double?> longitude = const Value.absent(),
     String? crewJson,
     double? catchKg,
     int? batchCount,
@@ -3209,6 +3275,8 @@ class FishingTripRow extends DataClass implements Insertable<FishingTripRow> {
     boatName: boatName ?? this.boatName,
     startedAt: startedAt ?? this.startedAt,
     fishingArea: fishingArea ?? this.fishingArea,
+    latitude: latitude.present ? latitude.value : this.latitude,
+    longitude: longitude.present ? longitude.value : this.longitude,
     crewJson: crewJson ?? this.crewJson,
     catchKg: catchKg ?? this.catchKg,
     batchCount: batchCount ?? this.batchCount,
@@ -3229,6 +3297,8 @@ class FishingTripRow extends DataClass implements Insertable<FishingTripRow> {
       fishingArea: data.fishingArea.present
           ? data.fishingArea.value
           : this.fishingArea,
+      latitude: data.latitude.present ? data.latitude.value : this.latitude,
+      longitude: data.longitude.present ? data.longitude.value : this.longitude,
       crewJson: data.crewJson.present ? data.crewJson.value : this.crewJson,
       catchKg: data.catchKg.present ? data.catchKg.value : this.catchKg,
       batchCount: data.batchCount.present
@@ -3256,6 +3326,8 @@ class FishingTripRow extends DataClass implements Insertable<FishingTripRow> {
           ..write('boatName: $boatName, ')
           ..write('startedAt: $startedAt, ')
           ..write('fishingArea: $fishingArea, ')
+          ..write('latitude: $latitude, ')
+          ..write('longitude: $longitude, ')
           ..write('crewJson: $crewJson, ')
           ..write('catchKg: $catchKg, ')
           ..write('batchCount: $batchCount, ')
@@ -3277,6 +3349,8 @@ class FishingTripRow extends DataClass implements Insertable<FishingTripRow> {
     boatName,
     startedAt,
     fishingArea,
+    latitude,
+    longitude,
     crewJson,
     catchKg,
     batchCount,
@@ -3297,6 +3371,8 @@ class FishingTripRow extends DataClass implements Insertable<FishingTripRow> {
           other.boatName == this.boatName &&
           other.startedAt == this.startedAt &&
           other.fishingArea == this.fishingArea &&
+          other.latitude == this.latitude &&
+          other.longitude == this.longitude &&
           other.crewJson == this.crewJson &&
           other.catchKg == this.catchKg &&
           other.batchCount == this.batchCount &&
@@ -3315,6 +3391,8 @@ class FishingTripRowsCompanion extends UpdateCompanion<FishingTripRow> {
   final Value<String> boatName;
   final Value<DateTime> startedAt;
   final Value<String> fishingArea;
+  final Value<double?> latitude;
+  final Value<double?> longitude;
   final Value<String> crewJson;
   final Value<double> catchKg;
   final Value<int> batchCount;
@@ -3332,6 +3410,8 @@ class FishingTripRowsCompanion extends UpdateCompanion<FishingTripRow> {
     this.boatName = const Value.absent(),
     this.startedAt = const Value.absent(),
     this.fishingArea = const Value.absent(),
+    this.latitude = const Value.absent(),
+    this.longitude = const Value.absent(),
     this.crewJson = const Value.absent(),
     this.catchKg = const Value.absent(),
     this.batchCount = const Value.absent(),
@@ -3350,6 +3430,8 @@ class FishingTripRowsCompanion extends UpdateCompanion<FishingTripRow> {
     required String boatName,
     required DateTime startedAt,
     required String fishingArea,
+    this.latitude = const Value.absent(),
+    this.longitude = const Value.absent(),
     this.crewJson = const Value.absent(),
     this.catchKg = const Value.absent(),
     this.batchCount = const Value.absent(),
@@ -3374,6 +3456,8 @@ class FishingTripRowsCompanion extends UpdateCompanion<FishingTripRow> {
     Expression<String>? boatName,
     Expression<DateTime>? startedAt,
     Expression<String>? fishingArea,
+    Expression<double>? latitude,
+    Expression<double>? longitude,
     Expression<String>? crewJson,
     Expression<double>? catchKg,
     Expression<int>? batchCount,
@@ -3392,6 +3476,8 @@ class FishingTripRowsCompanion extends UpdateCompanion<FishingTripRow> {
       if (boatName != null) 'boat_name': boatName,
       if (startedAt != null) 'started_at': startedAt,
       if (fishingArea != null) 'fishing_area': fishingArea,
+      if (latitude != null) 'latitude': latitude,
+      if (longitude != null) 'longitude': longitude,
       if (crewJson != null) 'crew_json': crewJson,
       if (catchKg != null) 'catch_kg': catchKg,
       if (batchCount != null) 'batch_count': batchCount,
@@ -3412,6 +3498,8 @@ class FishingTripRowsCompanion extends UpdateCompanion<FishingTripRow> {
     Value<String>? boatName,
     Value<DateTime>? startedAt,
     Value<String>? fishingArea,
+    Value<double?>? latitude,
+    Value<double?>? longitude,
     Value<String>? crewJson,
     Value<double>? catchKg,
     Value<int>? batchCount,
@@ -3430,6 +3518,8 @@ class FishingTripRowsCompanion extends UpdateCompanion<FishingTripRow> {
       boatName: boatName ?? this.boatName,
       startedAt: startedAt ?? this.startedAt,
       fishingArea: fishingArea ?? this.fishingArea,
+      latitude: latitude ?? this.latitude,
+      longitude: longitude ?? this.longitude,
       crewJson: crewJson ?? this.crewJson,
       catchKg: catchKg ?? this.catchKg,
       batchCount: batchCount ?? this.batchCount,
@@ -3463,6 +3553,12 @@ class FishingTripRowsCompanion extends UpdateCompanion<FishingTripRow> {
     }
     if (fishingArea.present) {
       map['fishing_area'] = Variable<String>(fishingArea.value);
+    }
+    if (latitude.present) {
+      map['latitude'] = Variable<double>(latitude.value);
+    }
+    if (longitude.present) {
+      map['longitude'] = Variable<double>(longitude.value);
     }
     if (crewJson.present) {
       map['crew_json'] = Variable<String>(crewJson.value);
@@ -3506,6 +3602,8 @@ class FishingTripRowsCompanion extends UpdateCompanion<FishingTripRow> {
           ..write('boatName: $boatName, ')
           ..write('startedAt: $startedAt, ')
           ..write('fishingArea: $fishingArea, ')
+          ..write('latitude: $latitude, ')
+          ..write('longitude: $longitude, ')
           ..write('crewJson: $crewJson, ')
           ..write('catchKg: $catchKg, ')
           ..write('batchCount: $batchCount, ')
@@ -7568,6 +7666,8 @@ typedef $$FishingTripRowsTableCreateCompanionBuilder =
       required String boatName,
       required DateTime startedAt,
       required String fishingArea,
+      Value<double?> latitude,
+      Value<double?> longitude,
       Value<String> crewJson,
       Value<double> catchKg,
       Value<int> batchCount,
@@ -7587,6 +7687,8 @@ typedef $$FishingTripRowsTableUpdateCompanionBuilder =
       Value<String> boatName,
       Value<DateTime> startedAt,
       Value<String> fishingArea,
+      Value<double?> latitude,
+      Value<double?> longitude,
       Value<String> crewJson,
       Value<double> catchKg,
       Value<int> batchCount,
@@ -7635,6 +7737,16 @@ class $$FishingTripRowsTableFilterComposer
 
   ColumnFilters<String> get fishingArea => $composableBuilder(
     column: $table.fishingArea,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get latitude => $composableBuilder(
+    column: $table.latitude,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get longitude => $composableBuilder(
+    column: $table.longitude,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -7723,6 +7835,16 @@ class $$FishingTripRowsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<double> get latitude => $composableBuilder(
+    column: $table.latitude,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get longitude => $composableBuilder(
+    column: $table.longitude,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get crewJson => $composableBuilder(
     column: $table.crewJson,
     builder: (column) => ColumnOrderings(column),
@@ -7797,6 +7919,12 @@ class $$FishingTripRowsTableAnnotationComposer
     column: $table.fishingArea,
     builder: (column) => column,
   );
+
+  GeneratedColumn<double> get latitude =>
+      $composableBuilder(column: $table.latitude, builder: (column) => column);
+
+  GeneratedColumn<double> get longitude =>
+      $composableBuilder(column: $table.longitude, builder: (column) => column);
 
   GeneratedColumn<String> get crewJson =>
       $composableBuilder(column: $table.crewJson, builder: (column) => column);
@@ -7875,6 +8003,8 @@ class $$FishingTripRowsTableTableManager
                 Value<String> boatName = const Value.absent(),
                 Value<DateTime> startedAt = const Value.absent(),
                 Value<String> fishingArea = const Value.absent(),
+                Value<double?> latitude = const Value.absent(),
+                Value<double?> longitude = const Value.absent(),
                 Value<String> crewJson = const Value.absent(),
                 Value<double> catchKg = const Value.absent(),
                 Value<int> batchCount = const Value.absent(),
@@ -7892,6 +8022,8 @@ class $$FishingTripRowsTableTableManager
                 boatName: boatName,
                 startedAt: startedAt,
                 fishingArea: fishingArea,
+                latitude: latitude,
+                longitude: longitude,
                 crewJson: crewJson,
                 catchKg: catchKg,
                 batchCount: batchCount,
@@ -7911,6 +8043,8 @@ class $$FishingTripRowsTableTableManager
                 required String boatName,
                 required DateTime startedAt,
                 required String fishingArea,
+                Value<double?> latitude = const Value.absent(),
+                Value<double?> longitude = const Value.absent(),
                 Value<String> crewJson = const Value.absent(),
                 Value<double> catchKg = const Value.absent(),
                 Value<int> batchCount = const Value.absent(),
@@ -7928,6 +8062,8 @@ class $$FishingTripRowsTableTableManager
                 boatName: boatName,
                 startedAt: startedAt,
                 fishingArea: fishingArea,
+                latitude: latitude,
+                longitude: longitude,
                 crewJson: crewJson,
                 catchKg: catchKg,
                 batchCount: batchCount,

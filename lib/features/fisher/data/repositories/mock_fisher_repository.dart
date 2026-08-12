@@ -118,6 +118,8 @@ class MockFisherRepository implements FisherRepository {
     catchKg: 125.4,
     batchCount: 6,
     status: TripStatus.inProgress,
+    latitude: 17.6858,
+    longitude: 83.2185,
   );
 
   @override

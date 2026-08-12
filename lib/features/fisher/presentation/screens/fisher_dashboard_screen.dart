@@ -10,9 +10,13 @@ import '../../../../core/models/models.dart';
 import '../../../../core/utils/fishtrace_time.dart';
 import '../../../../core/widgets/fishtrace_widgets.dart';
 import '../../../common/presentation/controllers/common_controller.dart';
+import '../../../common/presentation/controllers/mobile_settings_controller.dart';
+import '../../../common/presentation/formatters/measurement_formatter.dart';
+import '../../../common/domain/entities/mobile_settings.dart';
 import '../../../common/presentation/widgets/role_bottom_bar.dart';
 import '../../../../core/data/repositories.dart';
 import '../controllers/fisher_controller.dart';
+import '../widgets/marine_weather_card.dart';
 
 class FisherDashboardScreen extends StatelessWidget {
   const FisherDashboardScreen({super.key});
@@ -22,6 +26,7 @@ class FisherDashboardScreen extends StatelessWidget {
     final controller = Get.find<FisherController>();
     final common = Get.find<CommonController>();
     final appSession = Get.find<AppController>();
+    final mobileSettings = Get.find<MobileSettingsController>();
     final userName = appSession.user.value?.name ?? 'Fisher';
     return FishTraceScaffold(
       bottomNavigation: RoleBottomBar(
@@ -130,8 +135,10 @@ class FisherDashboardScreen extends StatelessWidget {
                         Expanded(
                           child: MetricCard(
                             label: 'Total Catch (Today)',
-                            value:
-                                '${controller.totalCatchKg.toStringAsFixed(1)} kg',
+                            value: MeasurementFormatter.weight(
+                              controller.totalCatchKg,
+                              mobileSettings.settings.value,
+                            ),
                             icon: Icons.set_meal_outlined,
                           ),
                         ),
@@ -150,6 +157,7 @@ class FisherDashboardScreen extends StatelessWidget {
                             value: _averageCatchPerHour(
                               trip?.catchKg ?? 0,
                               trip?.startedAt,
+                              mobileSettings.settings.value,
                             ),
                             icon: Icons.speed,
                           ),
@@ -158,11 +166,7 @@ class FisherDashboardScreen extends StatelessWidget {
                     ),
                   ),
                   const SectionHeader(title: 'Weather'),
-                  const FishTraceCard(
-                    child: Text(
-                      'Live marine weather is not connected. Check an official forecast before departure.',
-                    ),
-                  ),
+                  MarineWeatherCard(controller: controller),
                   SectionHeader(
                     title: 'Recent Activity',
                     action: 'See all',
@@ -177,7 +181,7 @@ class FisherDashboardScreen extends StatelessWidget {
                             icon: Icons.location_on_outlined,
                             title: 'Catch Added',
                             subtitle:
-                                '${controller.catches.first.species} · ${controller.catches.first.weightKg} kg',
+                                '${controller.catches.first.species} · ${MeasurementFormatter.weight(controller.catches.first.weightKg, mobileSettings.settings.value)}',
                             time: DateFormat('hh:mm a').format(
                               FishTraceTime.inSriLanka(
                                 controller.catches.first.caughtAt,
@@ -364,11 +368,15 @@ class _DashboardHeader extends StatelessWidget {
   );
 }
 
-String _averageCatchPerHour(double catchKg, DateTime? startedAt) {
-  if (startedAt == null) return '0.0 kg';
+String _averageCatchPerHour(
+  double catchKg,
+  DateTime? startedAt,
+  MobileSettings settings,
+) {
+  if (startedAt == null) return MeasurementFormatter.weight(0, settings);
   final minutes = DateTime.now().difference(startedAt).inMinutes;
-  if (minutes < 1) return '${catchKg.toStringAsFixed(1)} kg';
-  return '${(catchKg / (minutes / 60)).toStringAsFixed(1)} kg';
+  if (minutes < 1) return MeasurementFormatter.weight(catchKg, settings);
+  return MeasurementFormatter.weight(catchKg / (minutes / 60), settings);
 }
 
 class _ActivityRow extends StatelessWidget {

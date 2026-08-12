@@ -7,6 +7,7 @@ import '../../../../core/models/models.dart';
 import '../../../../core/widgets/fishtrace_widgets.dart';
 import '../../../../core/data/repositories.dart';
 import '../../../common/presentation/widgets/role_bottom_bar.dart';
+import '../../../common/presentation/formatters/currency_formatter.dart';
 import '../controllers/retailer_controller.dart';
 
 class RetailerDashboardScreen extends StatelessWidget {
@@ -158,10 +159,12 @@ class RetailerDashboardScreen extends StatelessWidget {
                         ),
                         Expanded(
                           child: _ActivityMetric(
-                            icon: Icons.currency_rupee,
+                            icon: Icons.payments_outlined,
                             label: 'Sales',
-                            value:
-                                '₹${controller.totalSales.toStringAsFixed(0)}',
+                            value: CurrencyFormatter.lkr(
+                              controller.totalSales,
+                              showCents: false,
+                            ),
                           ),
                         ),
                       ],

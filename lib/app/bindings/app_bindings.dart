@@ -29,6 +29,7 @@ import '../../features/common/presentation/controllers/upload_controller.dart';
 import '../../features/fisher/data/repositories/dio_fisher_repository.dart';
 import '../../features/fisher/data/repositories/mock_fisher_repository.dart';
 import '../../features/fisher/data/repositories/offline_first_fisher_repository.dart';
+import '../../features/fisher/data/repositories/open_meteo_marine_weather_repository.dart';
 import '../../features/fisher/domain/repositories/fisher_repository.dart';
 import '../../features/fisher/presentation/controllers/fisher_controller.dart';
 import '../../features/processor/data/repositories/dio_processor_repository.dart';
@@ -257,6 +258,7 @@ class FisherBinding extends Bindings {
       () => FisherController(
         repository: Get.find<FisherRepository>(),
         session: session,
+        weatherRepository: OpenMeteoMarineWeatherRepository(),
       ),
       fenix: true,
     );

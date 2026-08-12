@@ -6,6 +6,7 @@ import '../../../../app/theme/fishtrace_colors.dart';
 import '../../../../core/models/models.dart';
 import '../../../../core/widgets/fishtrace_widgets.dart';
 import '../../../common/presentation/widgets/role_bottom_bar.dart';
+import '../../../common/presentation/formatters/currency_formatter.dart';
 import '../../domain/entities/retailer_entities.dart';
 import '../controllers/retailer_controller.dart';
 
@@ -165,7 +166,7 @@ class InventoryScreen extends StatelessWidget {
                     'Unit price',
                     product.unitPrice == null
                         ? 'Price not set'
-                        : '₹ ${product.unitPrice!.toStringAsFixed(2)} / kg',
+                        : '${CurrencyFormatter.lkr(product.unitPrice!)} / kg',
                   ),
                   _Detail(
                     'Expiry',

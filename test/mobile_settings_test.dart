@@ -15,7 +15,7 @@ void main() {
     await controller.save(
       controller.settings.value.copyWith(
         compactDashboard: true,
-        useDeviceTheme: false,
+        themeMode: AppThemeMode.dark,
         measurementSystem: MeasurementSystem.imperial,
         language: MobileLanguage.tamil,
         temperatureAlerts: false,
@@ -25,7 +25,7 @@ void main() {
 
     final restored = await repository.load();
     expect(restored.compactDashboard, isTrue);
-    expect(restored.useDeviceTheme, isFalse);
+    expect(restored.themeMode, AppThemeMode.dark);
     expect(restored.measurementSystem, MeasurementSystem.imperial);
     expect(restored.language, MobileLanguage.tamil);
     expect(restored.temperatureAlerts, isFalse);

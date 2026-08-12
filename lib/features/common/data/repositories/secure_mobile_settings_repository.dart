@@ -19,7 +19,12 @@ class SecureMobileSettingsRepository implements MobileSettingsRepository {
       final json = (jsonDecode(encoded) as Map).cast<String, Object?>();
       return MobileSettings(
         compactDashboard: json['compact_dashboard'] == true,
-        useDeviceTheme: json['use_device_theme'] != false,
+        themeMode: AppThemeMode.values.firstWhere(
+          (value) => value.name == json['theme_mode'],
+          orElse: () => json['use_device_theme'] == false
+              ? AppThemeMode.light
+              : AppThemeMode.system,
+        ),
         measurementSystem: MeasurementSystem.values.firstWhere(
           (value) => value.name == json['measurement_system'],
           orElse: () => MeasurementSystem.metric,
@@ -44,7 +49,7 @@ class SecureMobileSettingsRepository implements MobileSettingsRepository {
     key: _storageKey,
     value: jsonEncode({
       'compact_dashboard': settings.compactDashboard,
-      'use_device_theme': settings.useDeviceTheme,
+      'theme_mode': settings.themeMode.name,
       'measurement_system': settings.measurementSystem.name,
       'language': settings.language.name,
       'temperature_alerts': settings.temperatureAlerts,

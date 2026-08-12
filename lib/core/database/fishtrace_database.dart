@@ -87,6 +87,8 @@ class FishingTripRows extends Table {
   TextColumn get boatName => text()();
   DateTimeColumn get startedAt => dateTime()();
   TextColumn get fishingArea => text()();
+  RealColumn get latitude => real().nullable()();
+  RealColumn get longitude => real().nullable()();
   TextColumn get crewJson => text().withDefault(const Constant('[]'))();
   RealColumn get catchKg => real().withDefault(const Constant(0))();
   IntColumn get batchCount => integer().withDefault(const Constant(0))();
@@ -193,7 +195,7 @@ class FishTraceDatabase extends _$FishTraceDatabase {
   }
 
   @override
-  int get schemaVersion => 4;
+  int get schemaVersion => 5;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -264,6 +266,14 @@ class FishTraceDatabase extends _$FishTraceDatabase {
         );
         await addColumnSafe(
           "ALTER TABLE sync_queue ADD COLUMN local_file_references TEXT NOT NULL DEFAULT '[]'",
+        );
+      }
+      if (from < 5) {
+        await addColumnSafe(
+          'ALTER TABLE fishing_trip_rows ADD COLUMN latitude REAL',
+        );
+        await addColumnSafe(
+          'ALTER TABLE fishing_trip_rows ADD COLUMN longitude REAL',
         );
       }
     },

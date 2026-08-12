@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 
 import '../core/errors/app_error_handler.dart';
 import '../features/common/presentation/controllers/mobile_settings_controller.dart';
+import '../features/common/domain/entities/mobile_settings.dart';
 import 'router/app_router.dart';
 import 'theme/fishtrace_theme.dart';
 
@@ -37,10 +38,14 @@ class _FishTraceAppState extends State<FishTraceApp> {
         title: 'FishTrace',
         debugShowCheckedModeBanner: false,
         theme: theme,
-        darkTheme: ThemeData.dark(
-          useMaterial3: true,
+        darkTheme: buildFishTraceTheme(
+          brightness: Brightness.dark,
         ).copyWith(visualDensity: theme.visualDensity),
-        themeMode: settings.useDeviceTheme ? ThemeMode.system : ThemeMode.light,
+        themeMode: switch (settings.themeMode) {
+          AppThemeMode.system => ThemeMode.system,
+          AppThemeMode.light => ThemeMode.light,
+          AppThemeMode.dark => ThemeMode.dark,
+        },
         routerConfig: _router,
       );
     });

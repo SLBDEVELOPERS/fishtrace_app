@@ -9,7 +9,10 @@ import '../../../../core/models/models.dart';
 import '../../../../core/utils/fishtrace_time.dart';
 import '../../../../core/widgets/fishtrace_widgets.dart';
 import '../../../common/presentation/widgets/role_bottom_bar.dart';
+import '../../../common/presentation/controllers/mobile_settings_controller.dart';
+import '../../../common/presentation/formatters/measurement_formatter.dart';
 import '../controllers/fisher_controller.dart';
+import '../widgets/marine_weather_card.dart';
 
 class ActiveTripDetailsScreen extends StatelessWidget {
   const ActiveTripDetailsScreen({super.key});
@@ -17,6 +20,7 @@ class ActiveTripDetailsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final controller = Get.find<FisherController>();
+    final mobileSettings = Get.find<MobileSettingsController>();
     return FishTraceScaffold(
       appBar: const FishTraceAppBar(
         title: 'Active Trip',
@@ -80,7 +84,10 @@ class ActiveTripDetailsScreen extends StatelessWidget {
                   Expanded(
                     child: MetricCard(
                       label: 'Catch (kg)',
-                      value: trip.catchKg.toStringAsFixed(1),
+                      value: MeasurementFormatter.weight(
+                        trip.catchKg,
+                        mobileSettings.settings.value,
+                      ),
                       icon: Icons.set_meal_outlined,
                     ),
                   ),
@@ -97,8 +104,8 @@ class ActiveTripDetailsScreen extends StatelessWidget {
                     child: MetricCard(
                       label: 'Avg. Catch / hr',
                       value: duration.inMinutes < 1
-                          ? '${trip.catchKg.toStringAsFixed(1)} kg'
-                          : '${(trip.catchKg / (duration.inMinutes / 60)).toStringAsFixed(1)} kg',
+                          ? '${MeasurementFormatter.weight(trip.catchKg, mobileSettings.settings.value)}/hr'
+                          : '${MeasurementFormatter.weight(trip.catchKg / (duration.inMinutes / 60), mobileSettings.settings.value)}/hr',
                       icon: Icons.speed,
                     ),
                   ),
@@ -120,11 +127,7 @@ class ActiveTripDetailsScreen extends StatelessWidget {
                 ),
               ),
             const SectionHeader(title: 'Weather Summary'),
-            const FishTraceCard(
-              child: Text(
-                'Live marine weather is not connected. Use an official marine forecast for operational decisions.',
-              ),
-            ),
+            MarineWeatherCard(controller: controller),
             const SizedBox(height: FishTraceSpacing.md),
             Text(
               'Trip Duration',

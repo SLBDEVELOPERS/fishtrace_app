@@ -270,6 +270,8 @@ class OfflineFirstFisherRepository
             boatName: trip.boatName,
             startedAt: trip.startedAt,
             fishingArea: trip.fishingArea,
+            latitude: Value(trip.latitude),
+            longitude: Value(trip.longitude),
             crewJson: Value(jsonEncode(trip.crew)),
             catchKg: Value(trip.catchKg),
             batchCount: Value(trip.batchCount),
@@ -291,17 +293,38 @@ class OfflineFirstFisherRepository
             .get();
     if (rows.isEmpty) return null;
     final row = rows.first;
+    final legacyCoordinates = _coordinatesFromText(row.fishingArea);
     return ActiveFishingTrip(
       id: row.serverId ?? row.localId,
       boatId: row.boatId,
       boatName: row.boatName,
       startedAt: row.startedAt,
       fishingArea: row.fishingArea,
+      latitude: row.latitude ?? legacyCoordinates?.$1,
+      longitude: row.longitude ?? legacyCoordinates?.$2,
       crew: (jsonDecode(row.crewJson) as List).cast<String>(),
       catchKg: row.catchKg,
       batchCount: row.batchCount,
       status: TripStatus.values.byName(row.status),
     );
+  }
+
+  static (double, double)? _coordinatesFromText(String value) {
+    final matches = RegExp(r'-?\d+(?:\.\d+)?').allMatches(value).toList();
+    if (matches.length < 2) return null;
+    var latitude = double.tryParse(matches[0].group(0)!);
+    var longitude = double.tryParse(matches[1].group(0)!);
+    if (latitude == null || longitude == null) return null;
+    final upper = value.toUpperCase();
+    if (upper.contains('S') && latitude > 0) latitude = -latitude;
+    if (upper.contains('W') && longitude > 0) longitude = -longitude;
+    if (latitude < -90 ||
+        latitude > 90 ||
+        longitude < -180 ||
+        longitude > 180) {
+      return null;
+    }
+    return (latitude, longitude);
   }
 
   Future<void> _cacheCatches(

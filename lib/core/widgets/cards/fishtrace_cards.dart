@@ -9,21 +9,21 @@ class FishTraceCard extends StatelessWidget {
     required this.child,
     this.padding = const EdgeInsets.all(FishTraceSpacing.sm),
     this.onTap,
-    this.color = FishTraceColors.surface,
-    this.borderColor = FishTraceColors.border,
+    this.color,
+    this.borderColor,
   });
 
   final Widget child;
   final EdgeInsetsGeometry padding;
   final VoidCallback? onTap;
-  final Color color;
-  final Color borderColor;
+  final Color? color;
+  final Color? borderColor;
 
   @override
   Widget build(BuildContext context) => Material(
-    color: color,
+    color: color ?? Theme.of(context).colorScheme.surface,
     shape: RoundedRectangleBorder(
-      side: BorderSide(color: borderColor),
+      side: BorderSide(color: borderColor ?? Theme.of(context).dividerColor),
       borderRadius: BorderRadius.circular(FishTraceRadii.card),
     ),
     clipBehavior: Clip.antiAlias,

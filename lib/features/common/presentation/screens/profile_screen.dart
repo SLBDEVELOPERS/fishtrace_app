@@ -30,7 +30,7 @@ class ProfileScreen extends StatelessWidget {
         );
       }
       return FishTraceScaffold(
-        backgroundColor: FishTraceColors.surface,
+        backgroundColor: Theme.of(context).colorScheme.surface,
         bottomNavigation: RoleBottomBar(role: user.role, selectedIndex: 3),
         body: Column(
           children: [
@@ -71,8 +71,8 @@ class ProfileScreen extends StatelessWidget {
                           child: Container(
                             width: 25,
                             height: 25,
-                            decoration: const BoxDecoration(
-                              color: FishTraceColors.surface,
+                            decoration: BoxDecoration(
+                              color: Theme.of(context).colorScheme.surface,
                               shape: BoxShape.circle,
                             ),
                             child: const Icon(
@@ -140,9 +140,7 @@ class ProfileScreen extends StatelessWidget {
                   _SettingsTile(
                     icon: Icons.tune,
                     title: 'Preferences',
-                    trailing: settings.compactDashboard
-                        ? 'Compact'
-                        : 'Standard',
+                    trailing: settings.themeLabel,
                     onTap: () => _showPreferences(context, settingsController),
                   ),
                   _SettingsTile(
@@ -304,12 +302,34 @@ class ProfileScreen extends StatelessWidget {
                 onChanged: (value) =>
                     controller.save(settings.copyWith(compactDashboard: value)),
               ),
-              SwitchListTile(
-                contentPadding: EdgeInsets.zero,
-                title: const Text('Use device theme'),
-                value: settings.useDeviceTheme,
-                onChanged: (value) =>
-                    controller.save(settings.copyWith(useDeviceTheme: value)),
+              const SizedBox(height: 8),
+              Text(
+                'Appearance',
+                style: Theme.of(context).textTheme.labelMedium,
+              ),
+              const SizedBox(height: 8),
+              SegmentedButton<AppThemeMode>(
+                segments: const [
+                  ButtonSegment(
+                    value: AppThemeMode.system,
+                    label: Text('System'),
+                    icon: Icon(Icons.brightness_auto_outlined),
+                  ),
+                  ButtonSegment(
+                    value: AppThemeMode.light,
+                    label: Text('Light'),
+                    icon: Icon(Icons.light_mode_outlined),
+                  ),
+                  ButtonSegment(
+                    value: AppThemeMode.dark,
+                    label: Text('Dark'),
+                    icon: Icon(Icons.dark_mode_outlined),
+                  ),
+                ],
+                selected: {settings.themeMode},
+                onSelectionChanged: (selection) => controller.save(
+                  settings.copyWith(themeMode: selection.first),
+                ),
               ),
             ],
           );
@@ -493,7 +513,7 @@ class _SettingsTile extends StatelessWidget {
       size: 20,
       color: destructive
           ? FishTraceColors.error
-          : FishTraceColors.textSecondary,
+          : Theme.of(context).colorScheme.onSurfaceVariant,
     ),
     title: Text(
       title,

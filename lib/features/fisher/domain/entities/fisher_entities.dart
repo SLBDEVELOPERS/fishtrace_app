@@ -190,3 +190,19 @@ class ActiveFishingTrip {
   final double? latitude;
   final double? longitude;
 }
+
+class MarineWeather {
+  const MarineWeather({
+    required this.observedAt,
+    this.waveHeight,
+    this.waveDirection,
+    this.wavePeriod,
+    this.seaSurfaceTemperature,
+  });
+
+  final DateTime observedAt;
+  final double? waveHeight;
+  final double? waveDirection;
+  final double? wavePeriod;
+  final double? seaSurfaceTemperature;
+}

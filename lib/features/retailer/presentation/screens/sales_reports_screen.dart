@@ -7,6 +7,7 @@ import '../../../../core/models/models.dart';
 import '../../../../core/utils/fishtrace_time.dart';
 import '../../../../core/widgets/fishtrace_widgets.dart';
 import '../../../common/presentation/widgets/role_bottom_bar.dart';
+import '../../../common/presentation/formatters/currency_formatter.dart';
 import '../../domain/entities/retailer_entities.dart';
 import '../controllers/retail_reports_controller.dart';
 import '../controllers/retailer_controller.dart';
@@ -88,8 +89,11 @@ class _SalesReportsScreenState extends State<SalesReportsScreen> {
                     label: 'Total Sales',
                     value: summary == null
                         ? '--'
-                        : '₹${summary.salesTotal.toStringAsFixed(0)}',
-                    icon: Icons.currency_rupee,
+                        : CurrencyFormatter.lkr(
+                            summary.salesTotal,
+                            showCents: false,
+                          ),
+                    icon: Icons.payments_outlined,
                   ),
                 ),
                 const SizedBox(width: 8),
@@ -208,7 +212,7 @@ class _SalesRow extends StatelessWidget {
               ],
             ),
           ),
-          Text('₹${sale.total.toStringAsFixed(0)}'),
+          Text(CurrencyFormatter.lkr(sale.total, showCents: false)),
           const SizedBox(width: 8),
           StatusChip(label: sale.status),
         ],

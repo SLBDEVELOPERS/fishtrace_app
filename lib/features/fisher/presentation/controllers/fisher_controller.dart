@@ -1,4 +1,5 @@
 import 'package:get/get.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../../../core/data/repositories.dart';
@@ -7,6 +8,7 @@ import '../../../../core/models/models.dart';
 import '../../../../core/network/api_models.dart';
 import '../../domain/entities/fisher_entities.dart';
 import '../../domain/repositories/fisher_repository.dart';
+import '../../domain/repositories/marine_weather_repository.dart';
 
 enum BoatFilter { all, active, inactive }
 
@@ -16,11 +18,14 @@ class FisherController extends GetxController {
   FisherController({
     required FisherRepository repository,
     required AppController session,
+    MarineWeatherRepository? weatherRepository,
   }) : _repository = repository,
-       _session = session;
+       _session = session,
+       _weatherRepository = weatherRepository;
 
   final FisherRepository _repository;
   final AppController _session;
+  final MarineWeatherRepository? _weatherRepository;
   final _uuid = const Uuid();
 
   final boats = <FisherBoat>[].obs;
@@ -31,6 +36,12 @@ class FisherController extends GetxController {
   final batchDetailsLoading = false.obs;
   final batchDetailsError = Rxn<AppException>();
   final activeTrip = Rxn<ActiveFishingTrip>();
+  final marineWeather = Rxn<MarineWeather>();
+  final weatherLoading = false.obs;
+  final weatherError = Rxn<AppException>();
+  final currentWeatherLatitude = RxnDouble();
+  final currentWeatherLongitude = RxnDouble();
+  final locationMessage = RxnString();
   final loading = false.obs;
   final boatFilter = BoatFilter.all.obs;
   final catchFilter = CatchFilter.all.obs;
@@ -70,6 +81,28 @@ class FisherController extends GetxController {
 
   double get totalCatchKg =>
       catches.fold(0, (total, item) => total + item.weightKg);
+
+  double? get weatherLatitude {
+    final trip = activeTrip.value;
+    if (trip?.latitude != null) return trip!.latitude;
+    final parsed = _coordinatesFromText(trip?.fishingArea ?? '');
+    if (parsed != null) return parsed.$1;
+    return _latestTripCatch?.latitude ?? currentWeatherLatitude.value;
+  }
+
+  double? get weatherLongitude {
+    final trip = activeTrip.value;
+    if (trip?.longitude != null) return trip!.longitude;
+    final parsed = _coordinatesFromText(trip?.fishingArea ?? '');
+    if (parsed != null) return parsed.$2;
+    return _latestTripCatch?.longitude ?? currentWeatherLongitude.value;
+  }
+
+  FisherCatch? get _latestTripCatch {
+    final tripId = activeTrip.value?.id;
+    if (tripId == null) return null;
+    return catches.firstWhereOrNull((item) => item.tripId == tripId);
+  }
 
   @override
   void onInit() {
@@ -147,6 +180,7 @@ class FisherController extends GetxController {
       batches.assignAll(results[2] as List<FisherBatchSummary>);
       activeTrip.value = results[3] as ActiveFishingTrip?;
       catchReferenceData.value = results[4] as FisherCatchReferenceData;
+      await loadMarineWeather();
     } on AppException catch (failure) {
       error.value = failure;
     } finally {
@@ -200,6 +234,93 @@ class FisherController extends GetxController {
     if (_repository case final FisherDraftStore store) {
       await store.saveTripDraft(trip);
     }
+    await loadMarineWeather();
+  }
+
+  Future<void> loadMarineWeather() async {
+    final repository = _weatherRepository;
+    if (repository == null || _session.offline.value) {
+      marineWeather.value = null;
+      return;
+    }
+    if (activeTrip.value == null &&
+        (currentWeatherLatitude.value == null ||
+            currentWeatherLongitude.value == null)) {
+      await _captureCurrentWeatherLocation();
+    }
+    final latitude = weatherLatitude;
+    final longitude = weatherLongitude;
+    if (latitude == null || longitude == null) {
+      marineWeather.value = null;
+      return;
+    }
+    weatherLoading.value = true;
+    weatherError.value = null;
+    try {
+      marineWeather.value = await repository.getCurrent(
+        latitude: 6.0329,
+        longitude: 80.1000,
+      );
+    } on AppException catch (failure) {
+      marineWeather.value = null;
+      weatherError.value = failure;
+    } finally {
+      weatherLoading.value = false;
+    }
+  }
+
+  Future<void> _captureCurrentWeatherLocation() async {
+    locationMessage.value = null;
+    try {
+      if (!await Geolocator.isLocationServiceEnabled()) {
+        locationMessage.value =
+            'Turn on location services to view local marine weather.';
+        return;
+      }
+      var permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+      }
+      if (permission == LocationPermission.deniedForever) {
+        locationMessage.value =
+            'Allow location access in system settings to view local marine weather.';
+        return;
+      }
+      if (permission == LocationPermission.denied) {
+        locationMessage.value =
+            'Location permission is required to view local marine weather.';
+        return;
+      }
+      final position = await Geolocator.getCurrentPosition(
+        locationSettings: const LocationSettings(
+          accuracy: LocationAccuracy.medium,
+          timeLimit: Duration(seconds: 15),
+        ),
+      );
+      currentWeatherLatitude.value = position.latitude;
+      currentWeatherLongitude.value = position.longitude;
+    } catch (_) {
+      locationMessage.value =
+          'Current location could not be determined. Try again.';
+    }
+  }
+
+  static (double, double)? _coordinatesFromText(String value) {
+    final matches = RegExp(r'-?\d+(?:\.\d+)?').allMatches(value).toList();
+    if (matches.length < 2) return null;
+    var latitude = double.tryParse(matches[0].group(0)!);
+    var longitude = double.tryParse(matches[1].group(0)!);
+    if (latitude == null || longitude == null) return null;
+    final upper = value.toUpperCase();
+    if (upper.contains('S') && latitude > 0) latitude = -latitude;
+    if (upper.contains('W') && longitude > 0) longitude = -longitude;
+    if (latitude < -90 ||
+        latitude > 90 ||
+        longitude < -180 ||
+        longitude > 180) {
+      return null;
+    }
+    return (latitude, longitude);
   }
 
   Future<void> completeActiveTrip() async {
@@ -215,8 +336,11 @@ class FisherController extends GetxController {
       catchKg: current.catchKg,
       batchCount: current.batchCount,
       status: TripStatus.completed,
+      latitude: current.latitude,
+      longitude: current.longitude,
     );
     activeTrip.value = null;
+    marineWeather.value = null;
     if (_repository case final FisherDraftStore store) {
       await store.saveTripDraft(completed);
     }

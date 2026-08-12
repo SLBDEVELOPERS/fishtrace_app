@@ -24,7 +24,8 @@ class AppConfig {
       dataSourceMode: dataSourceMode,
       apiBaseUrl: const String.fromEnvironment(
         'API_BASE_URL',
-        defaultValue: 'http://192.168.1.120:8002/api/v1',
+        defaultValue: 'https://fishtrace.aicainvestment.com/api/v1',
+        //defaultValue: 'http://192.168.1.120:8002/api/v1',
       ),
       firebaseEnabled: const bool.fromEnvironment(
         'FIREBASE_ENABLED',

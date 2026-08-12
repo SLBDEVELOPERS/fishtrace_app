@@ -191,6 +191,8 @@ class _StartFishingTripScreenState extends State<StartFishingTripScreen> {
         catchKg: 0,
         batchCount: 0,
         status: TripStatus.inProgress,
+        latitude: _latitude,
+        longitude: _longitude,
       ),
     );
     if (!mounted) return;

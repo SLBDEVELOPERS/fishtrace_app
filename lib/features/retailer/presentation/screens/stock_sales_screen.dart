@@ -6,6 +6,7 @@ import '../../../../app/theme/fishtrace_colors.dart';
 import '../../../../core/models/models.dart';
 import '../../../../core/widgets/fishtrace_widgets.dart';
 import '../../../common/presentation/widgets/role_bottom_bar.dart';
+import '../../../common/presentation/formatters/currency_formatter.dart';
 import '../../domain/entities/retailer_entities.dart';
 import '../controllers/retailer_controller.dart';
 
@@ -162,7 +163,7 @@ class _StockSalesScreenState extends State<StockSalesScreen>
                 const Text('Total Amount'),
                 const Spacer(),
                 Text(
-                  '₹ ${(quantity * price).toStringAsFixed(2)}',
+                  CurrencyFormatter.lkr(quantity * price),
                   style: Theme.of(context).textTheme.titleMedium,
                 ),
               ],
