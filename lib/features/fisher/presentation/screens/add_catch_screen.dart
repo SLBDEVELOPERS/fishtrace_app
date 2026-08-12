@@ -430,13 +430,17 @@ class _AddCatchScreenState extends State<AddCatchScreen> {
         FishTraceCard(
           child: Row(
             children: [
-              Text(
-                'Average Weight',
-                style: Theme.of(context).textTheme.labelMedium,
+              Expanded(
+                child: Text(
+                  'Average Weight',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.labelMedium,
+                ),
               ),
-              const Spacer(),
               Text(
                 '${_averageWeight.toStringAsFixed(2)} kg',
+                maxLines: 1,
                 style: Theme.of(context).textTheme.titleSmall,
               ),
             ],

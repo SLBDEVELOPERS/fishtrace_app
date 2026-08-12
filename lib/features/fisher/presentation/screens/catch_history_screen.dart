@@ -44,7 +44,8 @@ class CatchHistoryScreen extends StatelessWidget {
               onChanged: (value) => controller.catchSearch.value = value,
             ),
           ),
-          Padding(
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Obx(
               () => SegmentedButton<CatchFilter>(
@@ -105,13 +106,17 @@ class CatchHistoryScreen extends StatelessWidget {
               ),
               child: Row(
                 children: [
-                  Text(
-                    'Total Catch (Today)',
-                    style: Theme.of(context).textTheme.labelMedium,
+                  Expanded(
+                    child: Text(
+                      'Total Catch (Today)',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: Theme.of(context).textTheme.labelMedium,
+                    ),
                   ),
-                  const Spacer(),
                   Text(
                     '${controller.totalCatchKg.toStringAsFixed(1)} kg',
+                    maxLines: 1,
                     style: Theme.of(context).textTheme.titleSmall,
                   ),
                 ],

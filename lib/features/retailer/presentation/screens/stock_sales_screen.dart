@@ -160,11 +160,16 @@ class _StockSalesScreenState extends State<StockSalesScreen>
           FishTraceCard(
             child: Row(
               children: [
-                const Text('Total Amount'),
+                const Expanded(child: Text('Total Amount')),
                 const Spacer(),
-                Text(
-                  CurrencyFormatter.lkr(quantity * price),
-                  style: Theme.of(context).textTheme.titleMedium,
+                Flexible(
+                  child: Text(
+                    CurrencyFormatter.lkr(quantity * price),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    textAlign: TextAlign.end,
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
                 ),
               ],
             ),

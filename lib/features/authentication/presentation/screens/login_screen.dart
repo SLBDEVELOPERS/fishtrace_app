@@ -253,6 +253,7 @@ class _SocialButton extends StatelessWidget {
       style: OutlinedButton.styleFrom(
         foregroundColor: FishTraceColors.textPrimary,
         side: const BorderSide(color: FishTraceColors.border),
+        padding: const EdgeInsets.symmetric(horizontal: 8),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,

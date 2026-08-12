@@ -232,12 +232,19 @@ class _SyncMetric extends StatelessWidget {
       children: [
         Icon(icon, color: color, size: 22),
         const SizedBox(width: FishTraceSpacing.sm),
-        Column(
+        Expanded(
+          child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(value, style: Theme.of(context).textTheme.titleLarge),
-            Text(label, style: Theme.of(context).textTheme.bodySmall),
+            Text(
+              label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
           ],
+          ),
         ),
       ],
     ),

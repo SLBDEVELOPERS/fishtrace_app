@@ -155,16 +155,17 @@ class _OnboardingPageView extends StatelessWidget {
   final _OnboardingPage page;
 
   @override
-  Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.symmetric(horizontal: 24),
-    child: Column(
-      children: [
-        const Spacer(),
-        SizedBox(
-          height: 250,
-          width: double.infinity,
-          child: CustomPaint(painter: _OnboardingPainter(page.illustration)),
-        ),
+  Widget build(BuildContext context) => LayoutBuilder(
+    builder: (context, constraints) => Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 24),
+      child: Column(
+        children: [
+          const Spacer(),
+          SizedBox(
+            height: math.min(250, constraints.maxHeight * .34),
+            width: double.infinity,
+            child: CustomPaint(painter: _OnboardingPainter(page.illustration)),
+          ),
         const SizedBox(height: FishTraceSpacing.xl),
         Text(
           page.title,
@@ -179,8 +180,9 @@ class _OnboardingPageView extends StatelessWidget {
             context,
           ).textTheme.bodyLarge?.copyWith(color: FishTraceColors.textSecondary),
         ),
-        const Spacer(),
-      ],
+          const Spacer(),
+        ],
+      ),
     ),
   );
 }

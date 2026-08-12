@@ -23,7 +23,10 @@ class SplashScreen extends StatelessWidget {
             const Spacer(flex: 3),
             const FishTraceMark(size: 82, onDark: true),
             const SizedBox(height: FishTraceSpacing.md),
-            const FishTraceWordmark(onDark: true),
+            const FittedBox(
+              fit: BoxFit.scaleDown,
+              child: FishTraceWordmark(onDark: true),
+            ),
             const SizedBox(height: FishTraceSpacing.xs),
             Text(
               'Trace Every Fish. Trust Every Step.',

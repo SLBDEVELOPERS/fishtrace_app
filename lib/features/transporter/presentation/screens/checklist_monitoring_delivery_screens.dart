@@ -342,13 +342,17 @@ class _MonitoringOverview extends StatelessWidget {
       children: [
         Row(
           children: [
-            Text(
-              reading?.recordedAt == null
-                  ? 'No telemetry timestamp'
-                  : 'Updated ${_timeAgo(reading!.recordedAt!)}',
-              style: Theme.of(context).textTheme.bodySmall,
+            Expanded(
+              child: Text(
+                reading?.recordedAt == null
+                    ? 'No telemetry timestamp'
+                    : 'Updated ${_timeAgo(reading!.recordedAt!)}',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
             ),
-            const Spacer(),
+            const SizedBox(width: FishTraceSpacing.sm),
             Text(
               controller.isConnected.value
                   ? '● Live'
@@ -369,7 +373,7 @@ class _MonitoringOverview extends StatelessWidget {
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
           crossAxisCount: 2,
-          childAspectRatio: 1.35,
+          childAspectRatio: 1.05,
           crossAxisSpacing: 8,
           mainAxisSpacing: 8,
           children: [
