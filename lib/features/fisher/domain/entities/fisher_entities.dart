@@ -108,6 +108,7 @@ class FisherCatch {
 class FisherBatchSummary {
   const FisherBatchSummary({
     required this.id,
+    this.batchCode = '',
     required this.species,
     required this.weightKg,
     required this.fishCount,
@@ -118,6 +119,7 @@ class FisherBatchSummary {
   });
 
   final String id;
+  final String batchCode;
   final String species;
   final double weightKg;
   final int fishCount;
@@ -125,6 +127,8 @@ class FisherBatchSummary {
   final BatchStatus status;
   final String tripId;
   final DateTime createdAt;
+
+  String get label => batchCode.isNotEmpty ? batchCode : id;
 }
 
 class FisherBatchDetails {
@@ -166,6 +170,7 @@ class BatchDocument {
 class ActiveFishingTrip {
   const ActiveFishingTrip({
     required this.id,
+    this.tripCode = '',
     required this.boatId,
     required this.boatName,
     required this.startedAt,
@@ -179,6 +184,7 @@ class ActiveFishingTrip {
   });
 
   final String id;
+  final String tripCode;
   final String boatId;
   final String boatName;
   final DateTime startedAt;
@@ -189,6 +195,8 @@ class ActiveFishingTrip {
   final TripStatus status;
   final double? latitude;
   final double? longitude;
+
+  String get label => tripCode.isNotEmpty ? tripCode : id;
 }
 
 class MarineWeather {

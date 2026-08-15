@@ -107,6 +107,7 @@ class ProcessingJob {
   const ProcessingJob({
     required this.id,
     required this.batchId,
+    this.batchCode = '',
     required this.species,
     required this.inputWeightKg,
     required this.outputWeightKg,
@@ -121,6 +122,7 @@ class ProcessingJob {
 
   final String id;
   final String batchId;
+  final String batchCode;
   final String species;
   final double inputWeightKg;
   final double outputWeightKg;
@@ -131,6 +133,8 @@ class ProcessingJob {
   final bool allStepsCompleted;
   final bool hasProcessingRecord;
   final DateTime startedAt;
+
+  String get batchLabel => batchCode.isNotEmpty ? batchCode : batchId;
 }
 
 class InspectionCriterion {

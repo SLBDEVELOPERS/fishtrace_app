@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:go_router/go_router.dart';
 
@@ -19,6 +20,10 @@ class RetailerDashboardScreen extends StatelessWidget {
     final appSession = Get.find<AppController>();
     final userName = appSession.user.value?.name ?? 'Retailer';
     return FishTraceScaffold(
+      safeAreaTop: false,
+      systemUiOverlayStyle: SystemUiOverlayStyle.light.copyWith(
+        statusBarColor: Colors.transparent,
+      ),
       bottomNavigation: RoleBottomBar(
         role: UserRole.retailer,
         selectedIndex: 0,

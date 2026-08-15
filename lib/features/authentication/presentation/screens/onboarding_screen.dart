@@ -166,20 +166,20 @@ class _OnboardingPageView extends StatelessWidget {
             width: double.infinity,
             child: CustomPaint(painter: _OnboardingPainter(page.illustration)),
           ),
-        const SizedBox(height: FishTraceSpacing.xl),
-        Text(
-          page.title,
-          textAlign: TextAlign.center,
-          style: Theme.of(context).textTheme.headlineMedium,
-        ),
-        const SizedBox(height: FishTraceSpacing.sm),
-        Text(
-          page.message,
-          textAlign: TextAlign.center,
-          style: Theme.of(
-            context,
-          ).textTheme.bodyLarge?.copyWith(color: FishTraceColors.textSecondary),
-        ),
+          const SizedBox(height: FishTraceSpacing.xl),
+          Text(
+            page.title,
+            textAlign: TextAlign.center,
+            style: Theme.of(context).textTheme.headlineMedium,
+          ),
+          const SizedBox(height: FishTraceSpacing.sm),
+          Text(
+            page.message,
+            textAlign: TextAlign.center,
+            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+              color: FishTraceColors.textSecondary,
+            ),
+          ),
           const Spacer(),
         ],
       ),

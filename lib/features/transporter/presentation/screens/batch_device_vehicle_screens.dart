@@ -319,7 +319,10 @@ class DeviceAssignmentScreen extends StatelessWidget {
                           ).showSnackBar(SnackBar(content: Text(error)));
                         }
                       },
-                      deviceId: device.id,
+                      deviceName: device.label,
+                      deviceCode: device.deviceCode == device.label
+                          ? null
+                          : device.deviceCode,
                       deviceType:
                           '${device.capabilities.join(' & ')} • '
                           'Signal ${device.signal.toInt()}%',
@@ -391,10 +394,31 @@ class DeviceAssignmentScreen extends StatelessWidget {
                                   );
                                   return;
                                 }
-                                await controller.load();
-                                if (context.mounted) {
-                                  context.go('/transporter/trip-details');
+                                final tripId =
+                                    controller.selectedTrip.value?.id;
+                                final deviceId =
+                                    controller.selectedDevice.value?.id;
+                                await controller.load(
+                                  selectCreatedOrUpdatedId: tripId,
+                                );
+                                if (!context.mounted) return;
+                                final refreshedTrip =
+                                    controller.selectedTrip.value;
+                                final assignmentReady =
+                                    refreshedTrip?.assignedDeviceId ==
+                                        deviceId &&
+                                    refreshedTrip!.deviceAssignmentSynced;
+                                if (assignmentReady) {
+                                  context.go('/transporter/checklist');
+                                  return;
                                 }
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text(
+                                      'The device was assigned, but Firebase synchronization did not complete. Check the device provisioning or Firebase connection and try again.',
+                                    ),
+                                  ),
+                                );
                               },
                       ),
                     ),

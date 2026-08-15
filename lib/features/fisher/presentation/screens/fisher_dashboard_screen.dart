@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
@@ -29,6 +30,10 @@ class FisherDashboardScreen extends StatelessWidget {
     final mobileSettings = Get.find<MobileSettingsController>();
     final userName = appSession.user.value?.name ?? 'Fisher';
     return FishTraceScaffold(
+      safeAreaTop: false,
+      systemUiOverlayStyle: SystemUiOverlayStyle.light.copyWith(
+        statusBarColor: Colors.transparent,
+      ),
       bottomNavigation: RoleBottomBar(
         role: UserRole.fisher,
         selectedIndex: 0,
@@ -196,7 +201,7 @@ class FisherDashboardScreen extends StatelessWidget {
                           _ActivityRow(
                             icon: Icons.layers_outlined,
                             title: 'Batch Created',
-                            subtitle: controller.batches.first.id,
+                            subtitle: controller.batches.first.label,
                             time: DateFormat('hh:mm a').format(
                               FishTraceTime.inSriLanka(
                                 controller.batches.first.createdAt,
@@ -215,7 +220,7 @@ class FisherDashboardScreen extends StatelessWidget {
                           _ActivityRow(
                             icon: Icons.route_outlined,
                             title: 'Trip Started',
-                            subtitle: trip.id,
+                            subtitle: trip.label,
                             time: FishTraceTime.format(
                               trip.startedAt,
                               'hh:mm a',

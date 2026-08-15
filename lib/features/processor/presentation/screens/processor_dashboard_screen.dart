@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:go_router/go_router.dart';
 
@@ -21,6 +22,10 @@ class ProcessorDashboardScreen extends StatelessWidget {
     final appSession = Get.find<AppController>();
     final userName = appSession.user.value?.name ?? 'Processor';
     return FishTraceScaffold(
+      safeAreaTop: false,
+      systemUiOverlayStyle: SystemUiOverlayStyle.light.copyWith(
+        statusBarColor: Colors.transparent,
+      ),
       bottomNavigation: RoleBottomBar(
         role: UserRole.processor,
         selectedIndex: 0,

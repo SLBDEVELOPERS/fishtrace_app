@@ -141,6 +141,7 @@ SensorReading _reading(Map<Object?, Object?> raw) {
     longitude: _nullableNumber(nested, 'longitude'),
     doorOpen: ApiData.boolean(nested, 'doorOpen'),
     recordedAt: _nullableDate(nested, 'recordedAt'),
+    temperatureStatus: ApiData.string(nested, 'temperatureStatus'),
   );
 }
 

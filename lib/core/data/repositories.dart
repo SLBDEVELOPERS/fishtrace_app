@@ -647,6 +647,10 @@ class DioSyncTransport implements SyncTransport {
         'origin': source['origin'],
         'destination': source['destination'],
         'estimated_distance_km': source['distanceKm'],
+        'origin_latitude': source['originLatitude'],
+        'origin_longitude': source['originLongitude'],
+        'destination_latitude': source['destinationLatitude'],
+        'destination_longitude': source['destinationLongitude'],
         if (source['scheduledAt'] != null)
           'scheduled_at': DateTime.parse(
             source['scheduledAt'].toString(),
@@ -1109,9 +1113,8 @@ class AppController extends GetxController {
       _awaitedSyncIds.add(item.id);
       await syncNow();
     }
-    final result = syncItems.firstWhereOrNull(
-          (queued) => queued.id == item.id,
-        ) ??
+    final result =
+        syncItems.firstWhereOrNull((queued) => queued.id == item.id) ??
         _completedSyncResults.remove(item.id) ??
         item.copyWith(status: SyncStatus.synced, updatedAt: DateTime.now());
     _awaitedSyncIds.remove(item.id);

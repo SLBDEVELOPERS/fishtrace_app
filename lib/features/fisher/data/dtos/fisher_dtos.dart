@@ -84,6 +84,7 @@ class FisherBatchDto {
     final speciesData = _map(json['species']);
     return FisherBatchSummary(
       id: ApiData.string(json, 'id'),
+      batchCode: ApiData.string(json, 'batchCode'),
       species: ApiData.string(speciesData, 'commonName'),
       weightKg: ApiData.number(json, 'totalWeightKg'),
       fishCount: ApiData.integer(json, 'fishCount'),
@@ -153,6 +154,7 @@ class ActiveFishingTripDto {
     final boat = _map(json['boat']);
     return ActiveFishingTrip(
       id: ApiData.string(json, 'id'),
+      tripCode: ApiData.string(json, 'tripCode'),
       boatId: ApiData.string(json, 'boatId'),
       boatName: ApiData.string(boat, 'name'),
       startedAt: ApiData.date(json, 'departedAt'),

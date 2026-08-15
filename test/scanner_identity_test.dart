@@ -3,6 +3,7 @@ import 'package:fishtrace/features/processor/domain/entities/processor_entities.
 import 'package:fishtrace/features/processor/data/dtos/processor_dtos.dart';
 import 'package:fishtrace/features/retailer/domain/entities/retailer_entities.dart';
 import 'package:fishtrace/features/transporter/domain/entities/transporter_entities.dart';
+import 'package:fishtrace/features/transporter/data/dtos/transporter_dtos.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
@@ -58,6 +59,19 @@ void main() {
 
     expect(batch.matchesScan(code), isTrue);
     expect(batch.matchesScan('public-token'), isTrue);
+  });
+
+  test('transporter device DTO uses backend display name and code', () {
+    final device = IoTDeviceDto.fromJson({
+      'id': '01a004ad-7735-73d1-af82-c89054e4b6ef',
+      'device_code': 'IOT-003',
+      'display_name': 'Testing Iot',
+      'status': 'ACTIVE',
+    }).toDomain();
+
+    expect(device.displayName, 'Testing Iot');
+    expect(device.deviceCode, 'IOT-003');
+    expect(device.label, 'Testing Iot');
   });
 
   test('retailer scanner accepts package label identity and trace URL', () {

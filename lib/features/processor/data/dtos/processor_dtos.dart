@@ -101,6 +101,7 @@ class ProcessingJobDto {
     return ProcessingJob(
       id: ApiData.string(json, 'id'),
       batchId: ApiData.string(json, 'fishBatchId'),
+      batchCode: ApiData.string(batch, 'batchCode'),
       species: ApiData.string(species, 'commonName'),
       inputWeightKg: ApiData.number(
         processing,

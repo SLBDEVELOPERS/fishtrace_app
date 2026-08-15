@@ -262,7 +262,7 @@ class ReceivedBatchDetailsScreen extends StatelessWidget {
               children: [
                 Expanded(
                   child: Text(
-                    'Batch #${batch.id}',
+                    'Batch #${batch.label}',
                     style: Theme.of(context).textTheme.titleLarge,
                   ),
                 ),
@@ -279,7 +279,7 @@ class ReceivedBatchDetailsScreen extends StatelessWidget {
             ),
             const SectionHeader(title: 'Items in this Batch'),
             FishBatchCard(
-              batchId: batch.id,
+              batchId: batch.label,
               species: batch.product,
               subtitle: '${batch.packageCount} package(s)',
               weight: '${batch.netWeightKg.toStringAsFixed(1)} kg',

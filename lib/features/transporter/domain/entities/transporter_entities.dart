@@ -3,6 +3,7 @@ import '../../../../core/models/models.dart';
 class TransporterTripView {
   const TransporterTripView({
     required this.id,
+    this.tripCode = '',
     required this.origin,
     required this.destination,
     required this.status,
@@ -18,9 +19,14 @@ class TransporterTripView {
     this.deviceAssignmentSynced = false,
     this.deliveryConfirmed = false,
     this.arrivedAt,
+    this.originLatitude,
+    this.originLongitude,
+    this.destinationLatitude,
+    this.destinationLongitude,
   });
 
   final String id;
+  final String tripCode;
   final String origin;
   final String destination;
   final TripStatus status;
@@ -36,10 +42,17 @@ class TransporterTripView {
   final bool deviceAssignmentSynced;
   final bool deliveryConfirmed;
   final DateTime? arrivedAt;
+  final double? originLatitude;
+  final double? originLongitude;
+  final double? destinationLatitude;
+  final double? destinationLongitude;
+
+  String get label => tripCode.isNotEmpty ? tripCode : id;
 
   TransporterTripView copyWith({TripStatus? status, DateTime? arrivedAt}) =>
       TransporterTripView(
         id: id,
+        tripCode: tripCode,
         origin: origin,
         destination: destination,
         status: status ?? this.status,
@@ -55,12 +68,17 @@ class TransporterTripView {
         deviceAssignmentSynced: deviceAssignmentSynced,
         deliveryConfirmed: deliveryConfirmed,
         arrivedAt: arrivedAt ?? this.arrivedAt,
+        originLatitude: originLatitude,
+        originLongitude: originLongitude,
+        destinationLatitude: destinationLatitude,
+        destinationLongitude: destinationLongitude,
       );
 }
 
 class TransportVehicleView {
   const TransportVehicleView({
     required this.id,
+    this.name = '',
     required this.registration,
     required this.type,
     required this.refrigerationCategory,
@@ -73,6 +91,7 @@ class TransportVehicleView {
   });
 
   final String id;
+  final String name;
   final String registration;
   final String type;
   final String refrigerationCategory;
@@ -82,11 +101,19 @@ class TransportVehicleView {
   final double maxTemperature;
   final String driver;
   final bool active;
+
+  String get label => name.isNotEmpty
+      ? name
+      : registration.isNotEmpty
+      ? registration
+      : id;
 }
 
 class TransportDeviceView {
   const TransportDeviceView({
     required this.id,
+    this.deviceCode = '',
+    this.displayName = '',
     required this.capabilities,
     required this.status,
     required this.battery,
@@ -96,12 +123,20 @@ class TransportDeviceView {
   });
 
   final String id;
+  final String deviceCode;
+  final String displayName;
   final List<String> capabilities;
   final DeviceStatus status;
   final double battery;
   final double signal;
   final DateTime lastSeen;
   final String? assignedTripId;
+
+  String get label => displayName.isNotEmpty
+      ? displayName
+      : deviceCode.isNotEmpty
+      ? deviceCode
+      : id;
 }
 
 class HandoverBatch {

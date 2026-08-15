@@ -151,6 +151,9 @@ class MapPreviewCard extends StatelessWidget {
     this.height = 150,
     this.caption,
     this.interactive = false,
+    this.markerIcon = Icons.location_on,
+    this.start,
+    this.destination,
   });
 
   final LatLng center;
@@ -158,6 +161,9 @@ class MapPreviewCard extends StatelessWidget {
   final double height;
   final String? caption;
   final bool interactive;
+  final IconData markerIcon;
+  final LatLng? start;
+  final LatLng? destination;
 
   @override
   Widget build(BuildContext context) => FishTraceCard(
@@ -174,7 +180,20 @@ class MapPreviewCard extends StatelessWidget {
             child: FlutterMap(
               options: MapOptions(
                 initialCenter: center,
-                initialZoom: 10,
+                initialZoom: start != null || destination != null ? 7 : 10,
+                initialCameraFit:
+                    (route.isNotEmpty || start != null || destination != null)
+                    ? CameraFit.coordinates(
+                        coordinates: [
+                          if (start != null) start!,
+                          ...route,
+                          center,
+                          if (destination != null) destination!,
+                        ],
+                        padding: const EdgeInsets.all(FishTraceSpacing.lg),
+                        maxZoom: 14,
+                      )
+                    : null,
                 interactionOptions: InteractionOptions(
                   flags: interactive
                       ? InteractiveFlag.all
@@ -182,7 +201,11 @@ class MapPreviewCard extends StatelessWidget {
                 ),
               ),
               children: [
-                const _MapBackdropLayer(),
+                TileLayer(
+                  urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                  userAgentPackageName: 'com.fishtrace.app',
+                  maxNativeZoom: 19,
+                ),
                 if (route.length > 1)
                   PolylineLayer(
                     polylines: [
@@ -196,18 +219,65 @@ class MapPreviewCard extends StatelessWidget {
                   ),
                 MarkerLayer(
                   markers: [
+                    if (start != null)
+                      Marker(
+                        point: start!,
+                        width: 40,
+                        height: 40,
+                        child: const Tooltip(
+                          message: 'Trip origin',
+                          child: Icon(
+                            Icons.trip_origin,
+                            color: FishTraceColors.success,
+                            size: 28,
+                          ),
+                        ),
+                      ),
+                    if (destination != null)
+                      Marker(
+                        point: destination!,
+                        width: 40,
+                        height: 40,
+                        child: const Tooltip(
+                          message: 'Trip destination',
+                          child: Icon(
+                            Icons.flag,
+                            color: FishTraceColors.error,
+                            size: 30,
+                          ),
+                        ),
+                      ),
                     Marker(
                       point: center,
                       width: 36,
                       height: 36,
-                      child: const Icon(
-                        Icons.location_on,
-                        color: FishTraceColors.primary,
-                        size: 32,
+                      child: Tooltip(
+                        message: 'Current position',
+                        child: Icon(
+                          markerIcon,
+                          color: FishTraceColors.primary,
+                          size: 32,
+                        ),
                       ),
                     ),
                   ],
                 ),
+                if (interactive)
+                  Builder(
+                    builder: (mapContext) => Align(
+                      alignment: Alignment.bottomRight,
+                      child: Padding(
+                        padding: const EdgeInsets.all(FishTraceSpacing.sm),
+                        child: FloatingActionButton.small(
+                          heroTag: null,
+                          tooltip: 'Center on current position',
+                          onPressed: () =>
+                              MapController.of(mapContext).move(center, 14),
+                          child: const Icon(Icons.my_location),
+                        ),
+                      ),
+                    ),
+                  ),
               ],
             ),
           ),
@@ -224,51 +294,6 @@ class MapPreviewCard extends StatelessWidget {
       ],
     ),
   );
-}
-
-class _MapBackdropLayer extends StatelessWidget {
-  const _MapBackdropLayer();
-
-  @override
-  Widget build(BuildContext context) => Container(
-    color: FishTraceColors.mapLand,
-    child: CustomPaint(painter: _MapBackdropPainter()),
-  );
-}
-
-class _MapBackdropPainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    final water = Path()
-      ..moveTo(size.width * .48, 0)
-      ..quadraticBezierTo(
-        size.width * .63,
-        size.height * .28,
-        size.width * .55,
-        size.height * .5,
-      )
-      ..quadraticBezierTo(
-        size.width * .45,
-        size.height * .74,
-        size.width * .72,
-        size.height,
-      )
-      ..lineTo(size.width, size.height)
-      ..lineTo(size.width, 0)
-      ..close();
-    canvas.drawPath(water, Paint()..color = FishTraceColors.mapWater);
-    final road = Paint()
-      ..color = Colors.white
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 3;
-    for (var index = 0; index < 5; index++) {
-      final y = size.height * (.14 + index * .18);
-      canvas.drawLine(Offset(0, y), Offset(size.width * .58, y + 25), road);
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
 
 class ChartCard extends StatelessWidget {

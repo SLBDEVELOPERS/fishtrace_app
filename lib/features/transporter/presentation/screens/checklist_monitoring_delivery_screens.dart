@@ -60,6 +60,17 @@ class PreTripChecklistScreen extends StatelessWidget {
         }
         final completed = controller.checklist.length;
         final total = TransporterController.mandatoryChecklist.length;
+        final checklistComplete = controller.validateChecklist() == null;
+        final checklistSaved = trip.completedChecklistItems.containsAll(
+          TransporterController.mandatoryChecklist,
+        );
+        final hasAssignedDevice = trip.assignedDeviceId != null;
+        final assignedDeviceOnline = controller.devices.any(
+          (device) =>
+              device.id == trip.assignedDeviceId &&
+              device.status != DeviceStatus.offline,
+        );
+        final deviceReady = trip.deviceAssignmentSynced && assignedDeviceOnline;
         return Column(
           children: [
             Padding(
@@ -130,7 +141,15 @@ class PreTripChecklistScreen extends StatelessWidget {
                 border: Border(top: BorderSide(color: FishTraceColors.border)),
               ),
               child: FishTracePrimaryButton(
-                label: 'Complete Checklist',
+                label: checklistComplete && checklistSaved
+                    ? deviceReady
+                          ? 'Start Trip'
+                          : !hasAssignedDevice
+                          ? 'Assign IoT Device'
+                          : !assignedDeviceOnline
+                          ? 'Replace Offline Device'
+                          : 'Device Sync Required'
+                    : 'Complete Checklist',
                 onPressed: () async {
                   final error = controller.validateChecklist();
                   if (error != null) {
@@ -149,6 +168,25 @@ class PreTripChecklistScreen extends StatelessWidget {
                     return;
                   }
                   try {
+                    if (checklistSaved && !deviceReady) {
+                      context.go('/transporter/devices');
+                      return;
+                    }
+                    if (checklistSaved) {
+                      final started = await controller.startSelectedTrip();
+                      if (started.status != SyncStatus.synced) {
+                        throw StateError(
+                          started.status == SyncStatus.failed
+                              ? started.lastError ??
+                                    'Trip could not be started.'
+                              : 'Trip start is queued. Continue after it syncs.',
+                        );
+                      }
+                      if (context.mounted) {
+                        context.go('/transporter/monitoring');
+                      }
+                      return;
+                    }
                     final checklistUpdate = await controller.queue(
                       'Pre-trip checklist',
                       'checklist',
@@ -166,22 +204,26 @@ class PreTripChecklistScreen extends StatelessWidget {
                       );
                     }
                     await controller.load();
-                    final started = await controller.startSelectedTrip();
-                    if (started.status != SyncStatus.synced) {
-                      throw StateError(
-                        started.status == SyncStatus.failed
-                            ? started.lastError ?? 'Trip could not be started.'
-                            : 'Trip start is queued. Continue after it syncs.',
-                      );
-                    }
                     if (context.mounted) {
-                      context.go('/transporter/monitoring');
+                      final refreshedTrip = controller.selectedTrip.value;
+                      final nextStep = refreshedTrip?.assignedDeviceId == null
+                          ? 'Assign an IoT device before starting the trip.'
+                          : 'You can now start the trip.';
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('Checklist completed. $nextStep'),
+                        ),
+                      );
                     }
                   } catch (error) {
                     if (context.mounted) {
-                      ScaffoldMessenger.of(
-                        context,
-                      ).showSnackBar(SnackBar(content: Text(error.toString())));
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(
+                            error.toString().replaceFirst('Bad state: ', ''),
+                          ),
+                        ),
+                      );
                     }
                   }
                 },
@@ -336,6 +378,10 @@ class _MonitoringOverview extends StatelessWidget {
     final airTemperature = reading?.airTemp;
     final humidity = reading?.humidity;
     final battery = reading?.battery;
+    final productStatus = _productTemperatureStatus(
+      reading?.temperatureStatus,
+      productTemperature,
+    );
     final hasGps = reading?.latitude != null && reading?.longitude != null;
     return ListView(
       padding: const EdgeInsets.all(FishTraceSpacing.md),
@@ -381,6 +427,8 @@ class _MonitoringOverview extends StatelessWidget {
               label: 'Product Temperature',
               value: _decimal(productTemperature, '°C'),
               icon: Icons.thermostat,
+              status: productStatus,
+              color: _productTemperatureColor(productStatus),
             ),
             SensorMetricCard(
               label: 'Air Temperature',
@@ -473,6 +521,35 @@ class _MonitoringOverview extends StatelessWidget {
   static String _whole(double? value, String unit) =>
       value == null ? 'Not reported' : '${value.toStringAsFixed(0)}$unit';
 
+  static String _productTemperatureStatus(
+    String? reportedStatus,
+    double? temperature,
+  ) {
+    final normalized = reportedStatus?.trim().toUpperCase();
+    if (normalized != null &&
+        const {
+          'SAFE',
+          'WARNING',
+          'CRITICAL',
+          'TOO_COLD',
+          'UNKNOWN',
+        }.contains(normalized)) {
+      return normalized;
+    }
+    if (temperature == null) return 'UNKNOWN';
+    if (temperature < 0) return 'TOO_COLD';
+    if (temperature <= 4) return 'SAFE';
+    if (temperature <= 8) return 'WARNING';
+    return 'CRITICAL';
+  }
+
+  static Color _productTemperatureColor(String status) => switch (status) {
+    'SAFE' => FishTraceColors.success,
+    'WARNING' => FishTraceColors.warning,
+    'CRITICAL' || 'TOO_COLD' => FishTraceColors.error,
+    _ => FishTraceColors.info,
+  };
+
   static String _timeAgo(DateTime value) {
     final age = DateTime.now().toUtc().difference(value.toUtc());
     if (age.inMinutes < 1) return 'just now';
@@ -495,14 +572,32 @@ class _MonitoringRoute extends StatelessWidget {
     final reading = liveController.latestReading.value;
     final trip = tripController.selectedTrip.value;
     final hasGps = reading?.latitude != null && reading?.longitude != null;
+    final route = liveController.chartReadings
+        .where((item) => item.latitude != null && item.longitude != null)
+        .map((item) => LatLng(item.latitude!, item.longitude!))
+        .toList(growable: false);
+    final origin = trip?.originLatitude != null && trip?.originLongitude != null
+        ? LatLng(trip!.originLatitude!, trip.originLongitude!)
+        : route.firstOrNull;
+    final destination =
+        trip?.destinationLatitude != null && trip?.destinationLongitude != null
+        ? LatLng(trip!.destinationLatitude!, trip.destinationLongitude!)
+        : null;
     return ListView(
       padding: const EdgeInsets.all(FishTraceSpacing.md),
       children: [
         if (hasGps)
           MapPreviewCard(
             center: LatLng(reading!.latitude!, reading.longitude!),
+            route: route,
             height: 360,
             interactive: true,
+            markerIcon: Icons.local_shipping,
+            start: origin,
+            destination: destination,
+            caption: route.length > 1
+                ? 'Live vehicle position · ${route.length} recorded locations'
+                : 'Live vehicle position · waiting for route history',
           )
         else
           const EmptyState(
@@ -857,7 +952,7 @@ class _DeliveryConfirmationScreenState
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      trip.id,
+                      trip.label,
                       style: Theme.of(context).textTheme.titleSmall,
                     ),
                     Text('${trip.origin}  →  ${trip.destination}'),
@@ -881,7 +976,11 @@ class _DeliveryConfirmationScreenState
                     for (final batch in trip.batches)
                       ListTile(
                         dense: true,
-                        title: Text(batch.id),
+                        title: Text(
+                          batch.batchCode.isNotEmpty
+                              ? batch.batchCode
+                              : batch.id,
+                        ),
                         trailing: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [

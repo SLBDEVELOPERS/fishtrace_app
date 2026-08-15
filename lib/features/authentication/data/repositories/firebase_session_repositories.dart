@@ -54,11 +54,7 @@ class ApiFirebaseSessionRepository implements FirebaseSessionRepository {
     final payload = response['data'] is Map
         ? ApiData.map(response['data'])
         : response;
-    final token = ApiData.string(
-      payload,
-      'custom_token',
-      ApiData.string(payload, 'customToken'),
-    );
+    final token = firebaseCustomTokenFromPayload(payload);
     if (token.isEmpty) {
       throw const ApiException(
         'Firebase session token was missing.',
@@ -78,3 +74,14 @@ class ApiFirebaseSessionRepository implements FirebaseSessionRepository {
   @override
   Future<void> signOut() => _auth.signOut();
 }
+
+String firebaseCustomTokenFromPayload(Map<String, Object?> payload) =>
+    ApiData.string(
+      payload,
+      'custom_token',
+      ApiData.string(
+        payload,
+        'customToken',
+        ApiData.string(payload, 'firebase_custom_token'),
+      ),
+    );

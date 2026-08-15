@@ -14,6 +14,7 @@ class TransportTripDto {
     final checklistItems = ApiData.listValue(checklist, 'items');
     return TransporterTripView(
       id: ApiData.string(json, 'id'),
+      tripCode: ApiData.string(json, 'tripCode'),
       origin: ApiData.string(json, 'origin'),
       destination: ApiData.string(json, 'destination'),
       status: _enum(TripStatus.values, switch (ApiData.string(json, 'status')) {
@@ -42,6 +43,10 @@ class TransportTripDto {
           ApiData.string(assignment, 'firebaseSyncStatus') == 'SYNCED',
       deliveryConfirmed: ApiData.value(json, 'deliveryConfirmation') != null,
       arrivedAt: _nullableDate(json, 'arrivedAt'),
+      originLatitude: _nullableNumber(json, 'originLatitude'),
+      originLongitude: _nullableNumber(json, 'originLongitude'),
+      destinationLatitude: _nullableNumber(json, 'destinationLatitude'),
+      destinationLongitude: _nullableNumber(json, 'destinationLongitude'),
     );
   }
 }
@@ -62,6 +67,7 @@ class VehicleDto {
   factory VehicleDto.fromJson(Map<String, Object?> json) => VehicleDto(json);
   TransportVehicleView toDomain() => TransportVehicleView(
     id: ApiData.string(json, 'id'),
+    name: ApiData.string(json, 'name'),
     registration: ApiData.string(json, 'registrationNumber'),
     type: ApiData.string(json, 'vehicleType'),
     refrigerationCategory: ApiData.string(json, 'refrigerationCategory'),
@@ -81,6 +87,8 @@ class IoTDeviceDto {
       IoTDeviceDto(json);
   TransportDeviceView toDomain() => TransportDeviceView(
     id: ApiData.string(json, 'id'),
+    deviceCode: ApiData.string(json, 'deviceCode'),
+    displayName: ApiData.string(json, 'displayName'),
     capabilities: [
       if (ApiData.boolean(json, 'supportsProductTemperature')) 'Temperature',
       if (ApiData.boolean(json, 'supportsAirTemperature')) 'Air temperature',

@@ -41,6 +41,22 @@ void main() {
   });
   tearDown(Get.reset);
 
+  test('API mode enables Firebase live monitoring by default', () {
+    final config = AppConfig.fromDefines();
+
+    expect(config.dataSourceMode, AppDataSourceMode.api);
+    expect(config.firebaseEnabled, isTrue);
+  });
+
+  test('Firebase session accepts the canonical Laravel token field', () {
+    expect(
+      firebaseCustomTokenFromPayload({
+        'firebase_custom_token': 'custom-token-value',
+      }),
+      'custom-token-value',
+    );
+  });
+
   test('CommonBinding selects exactly one repository for each mode', () {
     final api = ApiClient(
       Dio()..httpClientAdapter = _JsonAdapter({}),
@@ -804,6 +820,7 @@ void main() {
             'longitude': null,
             'battery_percentage': null,
             'door_open': false,
+            'temperature_status': 'CRITICAL',
             'recorded_at': '2026-08-08T09:00:00Z',
           },
         },
@@ -832,6 +849,7 @@ void main() {
       expect(latest?.productTemp, isNull);
       expect(latest?.airTemp, 2.3);
       expect(latest?.battery, isNull);
+      expect(latest?.temperatureStatus, 'CRITICAL');
       expect(latest?.recordedAt?.isUtc, isTrue);
       expect(history.single.productTemp, 2.1);
       expect(history.single.humidity, 82);

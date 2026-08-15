@@ -25,6 +25,10 @@ class MockTransporterRepository implements TransporterRepository {
       productTemperature: 2.1,
       driver: 'Alex Johnson',
       vehicleId: 'TN 07 AB 1234',
+      originLatitude: 9.9667,
+      originLongitude: 76.2425,
+      destinationLatitude: 11.6643,
+      destinationLongitude: 78.1460,
     ),
     TransporterTripView(
       id: 'TRP-2024-05-22',

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../../../app/theme/fishtrace_colors.dart';
 import '../../../app/theme/fishtrace_dimensions.dart';
@@ -13,6 +14,8 @@ class FishTraceScaffold extends StatelessWidget {
     this.floatingActionButton,
     this.backgroundColor,
     this.extendBody = false,
+    this.safeAreaTop = true,
+    this.systemUiOverlayStyle,
     this.resizeToAvoidBottomInset = true,
   });
 
@@ -23,18 +26,32 @@ class FishTraceScaffold extends StatelessWidget {
   final Widget? floatingActionButton;
   final Color? backgroundColor;
   final bool extendBody;
+  final bool safeAreaTop;
+  final SystemUiOverlayStyle? systemUiOverlayStyle;
   final bool resizeToAvoidBottomInset;
 
   @override
-  Widget build(BuildContext context) => Scaffold(
-    backgroundColor: backgroundColor,
-    resizeToAvoidBottomInset: resizeToAvoidBottomInset,
-    extendBody: extendBody,
-    appBar: appBar ?? (title == null ? null : FishTraceAppBar(title: title!)),
-    body: SafeArea(top: appBar == null && title == null, child: body),
-    bottomNavigationBar: bottomNavigation,
-    floatingActionButton: floatingActionButton,
-  );
+  Widget build(BuildContext context) {
+    final scaffold = Scaffold(
+      backgroundColor: backgroundColor,
+      resizeToAvoidBottomInset: resizeToAvoidBottomInset,
+      extendBody: extendBody,
+      appBar: appBar ?? (title == null ? null : FishTraceAppBar(title: title!)),
+      body: SafeArea(
+        top: safeAreaTop && appBar == null && title == null,
+        child: body,
+      ),
+      bottomNavigationBar: bottomNavigation,
+      floatingActionButton: floatingActionButton,
+    );
+    final overlayStyle = systemUiOverlayStyle;
+    return overlayStyle == null
+        ? scaffold
+        : AnnotatedRegion<SystemUiOverlayStyle>(
+            value: overlayStyle,
+            child: scaffold,
+          );
+  }
 }
 
 class FishTraceAppBar extends StatelessWidget implements PreferredSizeWidget {

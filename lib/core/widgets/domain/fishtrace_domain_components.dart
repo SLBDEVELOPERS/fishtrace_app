@@ -440,7 +440,8 @@ class VehicleCard extends StatelessWidget {
 class DeviceCard extends StatelessWidget {
   const DeviceCard({
     super.key,
-    required this.deviceId,
+    required this.deviceName,
+    this.deviceCode,
     required this.deviceType,
     required this.status,
     this.battery,
@@ -448,7 +449,8 @@ class DeviceCard extends StatelessWidget {
     this.onTap,
   });
 
-  final String deviceId;
+  final String deviceName;
+  final String? deviceCode;
   final String deviceType;
   final String status;
   final int? battery;
@@ -458,8 +460,11 @@ class DeviceCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) => _AssetCard(
     icon: Icons.sensors,
-    title: deviceId,
-    subtitle: deviceType,
+    title: deviceName,
+    subtitle: [
+      if (deviceCode != null && deviceCode!.isNotEmpty) deviceCode!,
+      deviceType,
+    ].join(' • '),
     status: status,
     supporting: battery == null ? null : 'Battery $battery%',
     borderColor: selected ? FishTraceColors.primary : FishTraceColors.border,

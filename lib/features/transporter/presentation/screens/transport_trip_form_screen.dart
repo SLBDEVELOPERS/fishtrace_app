@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
 import 'package:go_router/go_router.dart';
+import 'package:latlong2/latlong.dart';
 
 import '../../../../core/models/models.dart';
 import '../../../../core/widgets/fishtrace_widgets.dart';
@@ -23,6 +26,10 @@ class _TransportTripFormScreenState extends State<TransportTripFormScreen> {
   final _origin = TextEditingController();
   final _destination = TextEditingController();
   final _distance = TextEditingController();
+  final _originLatitude = TextEditingController();
+  final _originLongitude = TextEditingController();
+  final _destinationLatitude = TextEditingController();
+  final _destinationLongitude = TextEditingController();
   TransportVehicleView? _vehicle;
   bool _saving = false;
 
@@ -41,6 +48,10 @@ class _TransportTripFormScreenState extends State<TransportTripFormScreen> {
       _origin.text = editing.origin;
       _destination.text = editing.destination;
       _distance.text = editing.distanceKm.toStringAsFixed(1);
+      _setCoordinate(_originLatitude, editing.originLatitude);
+      _setCoordinate(_originLongitude, editing.originLongitude);
+      _setCoordinate(_destinationLatitude, editing.destinationLatitude);
+      _setCoordinate(_destinationLongitude, editing.destinationLongitude);
     } else if (_vehicle != null) {
       _driver.text = _vehicle!.driver;
     }
@@ -52,6 +63,10 @@ class _TransportTripFormScreenState extends State<TransportTripFormScreen> {
     _origin.dispose();
     _destination.dispose();
     _distance.dispose();
+    _originLatitude.dispose();
+    _originLongitude.dispose();
+    _destinationLatitude.dispose();
+    _destinationLongitude.dispose();
     super.dispose();
   }
 
@@ -67,6 +82,10 @@ class _TransportTripFormScreenState extends State<TransportTripFormScreen> {
         origin: _origin.text.trim(),
         destination: _destination.text.trim(),
         distanceKm: double.tryParse(_distance.text.trim()),
+        originLatitude: _coordinate(_originLatitude),
+        originLongitude: _coordinate(_originLongitude),
+        destinationLatitude: _coordinate(_destinationLatitude),
+        destinationLongitude: _coordinate(_destinationLongitude),
       );
       if (!mounted) return;
       if (result.status != SyncStatus.synced) {
@@ -87,6 +106,34 @@ class _TransportTripFormScreenState extends State<TransportTripFormScreen> {
     } finally {
       if (mounted) setState(() => _saving = false);
     }
+  }
+
+  LatLng? get _originPosition => _position(_originLatitude, _originLongitude);
+
+  LatLng? get _destinationPosition =>
+      _position(_destinationLatitude, _destinationLongitude);
+
+  Future<void> _pickLocation({required bool origin}) async {
+    final selected = await showDialog<LatLng>(
+      context: context,
+      builder: (context) => _RouteLocationPicker(
+        title: origin ? 'Select origin' : 'Select destination',
+        initialPosition: origin
+            ? _originPosition ?? _destinationPosition
+            : _destinationPosition ?? _originPosition,
+      ),
+    );
+    if (selected == null || !mounted) return;
+    setState(() {
+      _setCoordinate(
+        origin ? _originLatitude : _destinationLatitude,
+        selected.latitude,
+      );
+      _setCoordinate(
+        origin ? _originLongitude : _destinationLongitude,
+        selected.longitude,
+      );
+    });
   }
 
   @override
@@ -142,6 +189,37 @@ class _TransportTripFormScreenState extends State<TransportTripFormScreen> {
               validator: _required,
             ),
             const SizedBox(height: 16),
+            Text(
+              'Route locations (optional)',
+              style: Theme.of(context).textTheme.titleSmall,
+            ),
+            const SizedBox(height: 8),
+            _LocationSelectionCard(
+              label: 'Origin location',
+              position: _originPosition,
+              icon: Icons.trip_origin,
+              onSelect: () => _pickLocation(origin: true),
+              onClear: _originPosition == null
+                  ? null
+                  : () => setState(() {
+                      _originLatitude.clear();
+                      _originLongitude.clear();
+                    }),
+            ),
+            const SizedBox(height: 12),
+            _LocationSelectionCard(
+              label: 'Destination location',
+              position: _destinationPosition,
+              icon: Icons.location_on_outlined,
+              onSelect: () => _pickLocation(origin: false),
+              onClear: _destinationPosition == null
+                  ? null
+                  : () => setState(() {
+                      _destinationLatitude.clear();
+                      _destinationLongitude.clear();
+                    }),
+            ),
+            const SizedBox(height: 16),
             TextFormField(
               controller: _distance,
               decoration: const InputDecoration(
@@ -171,4 +249,196 @@ class _TransportTripFormScreenState extends State<TransportTripFormScreen> {
 
   String? _required(String? value) =>
       value?.trim().isEmpty ?? true ? 'This field is required' : null;
+
+  static void _setCoordinate(TextEditingController controller, double? value) {
+    if (value != null) controller.text = value.toStringAsFixed(6);
+  }
+
+  static double? _coordinate(TextEditingController controller) =>
+      double.tryParse(controller.text.trim());
+
+  static LatLng? _position(
+    TextEditingController latitude,
+    TextEditingController longitude,
+  ) {
+    final lat = _coordinate(latitude);
+    final lng = _coordinate(longitude);
+    return lat == null || lng == null ? null : LatLng(lat, lng);
+  }
+}
+
+class _LocationSelectionCard extends StatelessWidget {
+  const _LocationSelectionCard({
+    required this.label,
+    required this.position,
+    required this.icon,
+    required this.onSelect,
+    required this.onClear,
+  });
+
+  final String label;
+  final LatLng? position;
+  final IconData icon;
+  final VoidCallback onSelect;
+  final VoidCallback? onClear;
+
+  @override
+  Widget build(BuildContext context) => Card(
+    margin: EdgeInsets.zero,
+    child: ListTile(
+      leading: Icon(icon),
+      title: Text(label),
+      subtitle: Text(
+        position == null
+            ? 'Tap to select on the map'
+            : '${position!.latitude.toStringAsFixed(6)}, '
+                  '${position!.longitude.toStringAsFixed(6)}',
+      ),
+      trailing: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (onClear != null)
+            IconButton(
+              tooltip: 'Clear location',
+              onPressed: onClear,
+              icon: const Icon(Icons.close),
+            ),
+          const Icon(Icons.map_outlined),
+        ],
+      ),
+      onTap: onSelect,
+    ),
+  );
+}
+
+class _RouteLocationPicker extends StatefulWidget {
+  const _RouteLocationPicker({required this.title, this.initialPosition});
+
+  final String title;
+  final LatLng? initialPosition;
+
+  @override
+  State<_RouteLocationPicker> createState() => _RouteLocationPickerState();
+}
+
+class _RouteLocationPickerState extends State<_RouteLocationPicker> {
+  static const _sriLankaCenter = LatLng(7.8731, 80.7718);
+  final _mapController = MapController();
+  LatLng? _selected;
+  bool _locating = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _selected = widget.initialPosition;
+  }
+
+  Future<void> _useCurrentLocation() async {
+    setState(() => _locating = true);
+    try {
+      if (!await Geolocator.isLocationServiceEnabled()) {
+        throw StateError('Turn on location services and try again.');
+      }
+      var permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+      }
+      if (permission == LocationPermission.denied ||
+          permission == LocationPermission.deniedForever) {
+        throw StateError('Location permission is required.');
+      }
+      final current = await Geolocator.getCurrentPosition();
+      final position = LatLng(current.latitude, current.longitude);
+      if (!mounted) return;
+      setState(() => _selected = position);
+      _mapController.move(position, 15);
+    } catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(error.toString().replaceFirst('Bad state: ', '')),
+          ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _locating = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) => Dialog.fullscreen(
+    child: Scaffold(
+      appBar: AppBar(
+        title: Text(widget.title),
+        leading: const CloseButton(),
+        actions: [
+          TextButton(
+            onPressed: _selected == null
+                ? null
+                : () => Navigator.of(context).pop(_selected),
+            child: const Text('USE LOCATION'),
+          ),
+        ],
+      ),
+      body: Stack(
+        children: [
+          FlutterMap(
+            mapController: _mapController,
+            options: MapOptions(
+              initialCenter: widget.initialPosition ?? _sriLankaCenter,
+              initialZoom: widget.initialPosition == null ? 7 : 14,
+              onTap: (_, point) => setState(() => _selected = point),
+            ),
+            children: [
+              TileLayer(
+                urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                userAgentPackageName: 'com.fishtrace.app',
+              ),
+              if (_selected != null)
+                MarkerLayer(
+                  markers: [
+                    Marker(
+                      point: _selected!,
+                      width: 48,
+                      height: 48,
+                      child: const Icon(
+                        Icons.location_pin,
+                        size: 48,
+                        color: Colors.red,
+                      ),
+                    ),
+                  ],
+                ),
+            ],
+          ),
+          Positioned(
+            left: 16,
+            right: 16,
+            top: 16,
+            child: Card(
+              child: Padding(
+                padding: const EdgeInsets.all(12),
+                child: Text(
+                  _selected == null
+                      ? 'Tap the map to place the marker.'
+                      : 'Tap elsewhere to adjust the marker.',
+                  textAlign: TextAlign.center,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: _locating ? null : _useCurrentLocation,
+        icon: _locating
+            ? const SizedBox.square(
+                dimension: 18,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              )
+            : const Icon(Icons.my_location),
+        label: Text(_locating ? 'Locating…' : 'My location'),
+      ),
+    ),
+  );
 }

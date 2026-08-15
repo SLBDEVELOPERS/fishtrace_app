@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:go_router/go_router.dart';
 
@@ -38,6 +39,10 @@ class _TransporterDashboardScreenState
     final appSession = Get.find<AppController>();
     final userName = appSession.user.value?.name ?? 'Transporter';
     return FishTraceScaffold(
+      safeAreaTop: false,
+      systemUiOverlayStyle: SystemUiOverlayStyle.light.copyWith(
+        statusBarColor: Colors.transparent,
+      ),
       bottomNavigation: RoleBottomBar(
         role: UserRole.transporter,
         selectedIndex: 0,
@@ -143,7 +148,7 @@ class _TransporterDashboardScreenState
                             Align(
                               alignment: Alignment.centerLeft,
                               child: Text(
-                                trip.id,
+                                trip.label,
                                 style: Theme.of(context).textTheme.labelMedium,
                               ),
                             ),

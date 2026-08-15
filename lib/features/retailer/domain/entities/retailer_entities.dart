@@ -11,6 +11,7 @@ class RetailProduct {
     required this.packageWeightKg,
     this.expiry,
     required this.batchId,
+    this.batchCode = '',
     this.unitPrice,
     this.lowStockThreshold,
     this.quarantined = false,
@@ -25,9 +26,12 @@ class RetailProduct {
   final double packageWeightKg;
   final DateTime? expiry;
   final String batchId;
+  final String batchCode;
   final double? unitPrice;
   final double? lowStockThreshold;
   final bool quarantined;
+
+  String get batchLabel => batchCode.isNotEmpty ? batchCode : batchId;
 
   bool get lowStock =>
       lowStockThreshold != null && stockKg <= lowStockThreshold!;
@@ -46,6 +50,7 @@ class RetailProduct {
     packageWeightKg: packageWeightKg,
     expiry: expiry,
     batchId: batchId,
+    batchCode: batchCode,
     unitPrice: unitPrice,
     lowStockThreshold: lowStockThreshold,
     quarantined: quarantined ?? this.quarantined,
@@ -136,6 +141,8 @@ class ReceivedRetailBatch {
   final int packageCount;
   final String labelCode;
   final String traceUrl;
+
+  String get label => labelCode.isNotEmpty ? labelCode : id;
 
   bool matchesScan(String value) {
     final normalized = value.trim().toLowerCase();

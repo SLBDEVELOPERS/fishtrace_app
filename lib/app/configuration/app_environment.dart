@@ -29,7 +29,7 @@ class AppConfig {
       ),
       firebaseEnabled: const bool.fromEnvironment(
         'FIREBASE_ENABLED',
-        defaultValue: false,
+        defaultValue: true,
       ),
     );
   }

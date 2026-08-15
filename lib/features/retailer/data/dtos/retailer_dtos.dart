@@ -27,6 +27,7 @@ class RetailProductDto {
       packageWeightKg: packageWeight,
       expiry: _nullableDate(json, 'expiresAt'),
       batchId: ApiData.string(json, 'fishBatchId'),
+      batchCode: ApiData.string(batch, 'batchCode'),
       unitPrice: _nullableNumber(json, 'defaultUnitPrice'),
       lowStockThreshold: _nullableNumber(json, 'lowStockThresholdKg'),
       quarantined: ApiData.string(json, 'status') == 'RECALLED',

@@ -284,6 +284,7 @@ class SensorReading {
     this.longitude,
     this.doorOpen = false,
     this.recordedAt,
+    this.temperatureStatus,
   });
   final double? productTemp;
   final double? airTemp;
@@ -293,6 +294,7 @@ class SensorReading {
   final double? longitude;
   final bool doorOpen;
   final DateTime? recordedAt;
+  final String? temperatureStatus;
 }
 
 class ColdChainAlert {

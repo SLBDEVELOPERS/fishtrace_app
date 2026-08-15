@@ -42,7 +42,8 @@ void main() {
                 status: 'Active',
               ),
               const DeviceCard(
-                deviceId: 'FT-TH-10023',
+                deviceName: 'Reefer Sensor 23',
+                deviceCode: 'FT-TH-10023',
                 deviceType: 'Temperature & humidity',
                 status: 'Connected',
                 battery: 98,

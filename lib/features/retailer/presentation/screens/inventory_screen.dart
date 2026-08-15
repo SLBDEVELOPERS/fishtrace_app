@@ -200,7 +200,9 @@ class InventoryScreen extends StatelessWidget {
                 Navigator.pop(context);
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
-                    content: Text('Traceability loaded for ${product.batchId}'),
+                    content: Text(
+                      'Traceability loaded for ${product.batchLabel}',
+                    ),
                   ),
                 );
               },

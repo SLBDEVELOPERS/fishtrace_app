@@ -163,7 +163,10 @@ class _JobTile extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(job.batchId, style: Theme.of(context).textTheme.titleSmall),
+              Text(
+                job.batchLabel,
+                style: Theme.of(context).textTheme.titleSmall,
+              ),
               Text(
                 '${job.species} · ${job.inputWeightKg.toStringAsFixed(1)} kg',
                 style: Theme.of(context).textTheme.bodySmall,

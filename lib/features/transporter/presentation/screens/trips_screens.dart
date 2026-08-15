@@ -82,7 +82,7 @@ class TripsListScreen extends StatelessWidget {
                 itemBuilder: (context, index) {
                   final trip = trips[index];
                   return TripCard(
-                    tripId: trip.id,
+                    tripId: trip.label,
                     origin: trip.origin,
                     destination: trip.destination,
                     status: switch (trip.status) {
@@ -156,7 +156,7 @@ class TripDetailsScreen extends StatelessWidget {
               children: [
                 Expanded(
                   child: Text(
-                    trip.id,
+                    trip.label,
                     style: Theme.of(context).textTheme.titleSmall,
                   ),
                 ),
@@ -220,7 +220,12 @@ class TripDetailsScreen extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          trip.vehicleId,
+                          controller.vehicles
+                                  .firstWhereOrNull(
+                                    (vehicle) => vehicle.id == trip.vehicleId,
+                                  )
+                                  ?.label ??
+                              trip.vehicleId,
                           style: Theme.of(context).textTheme.titleSmall,
                         ),
                         Text(
@@ -254,7 +259,9 @@ class TripDetailsScreen extends StatelessWidget {
                       children: [
                         Expanded(
                           child: Text(
-                            batch.id,
+                            batch.batchCode.isNotEmpty
+                                ? batch.batchCode
+                                : batch.id,
                             style: Theme.of(context).textTheme.labelMedium,
                           ),
                         ),

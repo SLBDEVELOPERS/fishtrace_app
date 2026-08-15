@@ -79,7 +79,10 @@ class _BatchListCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(batch.id, style: Theme.of(context).textTheme.titleSmall),
+                Text(
+                  batch.label,
+                  style: Theme.of(context).textTheme.titleSmall,
+                ),
                 Text(
                   '${batch.species} • ${batch.weightKg.toStringAsFixed(1)} kg',
                   style: Theme.of(context).textTheme.bodySmall,

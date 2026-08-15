@@ -48,8 +48,6 @@ class OpenMeteoMarineWeatherRepository implements MarineWeatherRepository {
         },
       );
 
-      print(response);
-
       final current = response.data?['current'];
       final currentValues = current is Map
           ? current.cast<String, dynamic>()

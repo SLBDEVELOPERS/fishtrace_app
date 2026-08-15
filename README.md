@@ -25,7 +25,7 @@ Mock mode is default. API mode can be started with:
 ```bash
 flutter run --dart-define=DATA_SOURCE_MODE=api \
   --dart-define=API_BASE_URL=http://192.168.1.120:8002/api/v1 \
-  --dart-define=FIREBASE_ENABLED=false
+  --dart-define=FIREBASE_ENABLED=true
 ```
 
 The local Laravel development accounts use the backend-documented password

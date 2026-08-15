@@ -49,6 +49,7 @@ class TransporterController extends GetxController {
     final query = search.value.trim().toLowerCase();
     final matchesQuery =
         query.isEmpty ||
+        trip.tripCode.toLowerCase().contains(query) ||
         trip.id.toLowerCase().contains(query) ||
         trip.origin.toLowerCase().contains(query) ||
         trip.destination.toLowerCase().contains(query);
@@ -64,7 +65,10 @@ class TransporterController extends GetxController {
   List<TransportDeviceView> get filteredDevices => devices.where((device) {
     final query = search.value.trim().toLowerCase();
     final matchesQuery =
-        query.isEmpty || device.id.toLowerCase().contains(query);
+        query.isEmpty ||
+        device.displayName.toLowerCase().contains(query) ||
+        device.deviceCode.toLowerCase().contains(query) ||
+        device.id.toLowerCase().contains(query);
     final matchesFilter = switch (deviceFilter.value) {
       DeviceFilter.all => true,
       DeviceFilter.online => device.status != DeviceStatus.offline,
@@ -138,6 +142,10 @@ class TransporterController extends GetxController {
     required String origin,
     required String destination,
     double? distanceKm,
+    double? originLatitude,
+    double? originLongitude,
+    double? destinationLatitude,
+    double? destinationLongitude,
   }) {
     final trip = editing ? editableSelectedTrip : null;
     if (editing && trip == null) {
@@ -150,6 +158,10 @@ class TransporterController extends GetxController {
       'origin': origin,
       'destination': destination,
       'distanceKm': distanceKm,
+      'originLatitude': originLatitude,
+      'originLongitude': originLongitude,
+      'destinationLatitude': destinationLatitude,
+      'destinationLongitude': destinationLongitude,
     });
   }
 
@@ -249,6 +261,7 @@ class TransporterController extends GetxController {
     final assignedDevice = devices.firstWhereOrNull(
       (device) => device.id == trip.assignedDeviceId,
     );
+
     if (assignedDevice == null ||
         assignedDevice.status == DeviceStatus.offline ||
         !trip.deviceAssignmentSynced) {

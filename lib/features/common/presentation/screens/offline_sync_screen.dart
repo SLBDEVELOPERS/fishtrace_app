@@ -234,16 +234,16 @@ class _SyncMetric extends StatelessWidget {
         const SizedBox(width: FishTraceSpacing.sm),
         Expanded(
           child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(value, style: Theme.of(context).textTheme.titleLarge),
-            Text(
-              label,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: Theme.of(context).textTheme.bodySmall,
-            ),
-          ],
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(value, style: Theme.of(context).textTheme.titleLarge),
+              Text(
+                label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
+            ],
           ),
         ),
       ],

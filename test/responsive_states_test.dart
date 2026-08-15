@@ -1,5 +1,4 @@
 import 'package:fishtrace/app/theme/fishtrace_theme.dart';
-import 'package:fishtrace/core/models/models.dart';
 import 'package:fishtrace/core/widgets/states/fishtrace_states.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -46,10 +45,7 @@ void main() {
         registerTestDependencies(role: screen.role);
 
         await tester.pumpWidget(
-          MaterialApp(
-            theme: buildFishTraceTheme(),
-            home: screen.builder(),
-          ),
+          MaterialApp(theme: buildFishTraceTheme(), home: screen.builder()),
         );
         await tester.pump(const Duration(milliseconds: 350));
 
