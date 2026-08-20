@@ -8,6 +8,11 @@ import '../../../../core/models/models.dart';
 import '../../domain/repositories/sensor_repositories.dart';
 
 class LiveMonitoringController extends GetxController {
+  // ESP32 publishes live state every 15 seconds. Three missed updates are
+  // enough to mark the device unavailable without waiting for Firebase to
+  // close the app's own database connection.
+  static const deviceOfflineAfter = Duration(seconds: 45);
+
   LiveMonitoringController({
     required LiveSensorRepository liveSensorRepository,
     required SensorRepository sensorRepository,
@@ -90,10 +95,12 @@ class LiveMonitoringController extends GetxController {
 
   void _updateStale() {
     final recordedAt = latestReading.value?.recordedAt;
-    isStale.value =
+    final stale =
         recordedAt == null ||
         DateTime.now().toUtc().difference(recordedAt.toUtc()) >
-            const Duration(minutes: 2);
+            deviceOfflineAfter;
+    isStale.value = stale;
+    if (stale) isConnected.value = false;
   }
 
   Future<void> stop() async {

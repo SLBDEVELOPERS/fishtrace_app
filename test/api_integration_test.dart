@@ -1332,6 +1332,34 @@ void main() {
   );
 
   test(
+    'live monitoring marks a device offline when telemetry is stale',
+    () async {
+      final live = _FakeLiveSensorRepository();
+      final controller = LiveMonitoringController(
+        liveSensorRepository: live,
+        sensorRepository: _FakeSensorRepository(),
+        session: AppController(auth: MockAuthRepository()),
+      );
+      await controller.start('trip-1');
+
+      live.add(
+        SensorReading(
+          productTemp: 3.2,
+          recordedAt: DateTime.now().toUtc().subtract(
+            LiveMonitoringController.deviceOfflineAfter +
+                const Duration(seconds: 1),
+          ),
+        ),
+      );
+      await Future<void>.delayed(Duration.zero);
+
+      expect(controller.isStale.value, isTrue);
+      expect(controller.isConnected.value, isFalse);
+      await controller.stop();
+    },
+  );
+
+  test(
     'queued API operations resolve Laravel endpoint and idempotency',
     () async {
       final transport = _CapturingSyncTransport();
