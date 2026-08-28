@@ -139,7 +139,7 @@ class ProcessorDashboardScreen extends StatelessWidget {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    batch.id,
+                                    batch.label,
                                     style: Theme.of(
                                       context,
                                     ).textTheme.titleSmall,
@@ -206,7 +206,7 @@ class _ProcessorHeader extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Good morning, $userName 👋',
+                  'Good morning, $userName',
                   style: Theme.of(
                     context,
                   ).textTheme.titleMedium?.copyWith(color: Colors.white),

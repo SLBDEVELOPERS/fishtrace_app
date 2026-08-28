@@ -330,6 +330,15 @@ class MockSyncTransport implements SyncTransport {
   }
 }
 
+class DisabledSyncTransport implements SyncTransport {
+  const DisabledSyncTransport();
+
+  @override
+  Future<String> upload(SyncQueueItem item) => Future.error(
+    const NetworkException('API synchronization is not configured.'),
+  );
+}
+
 class DioSyncTransport implements SyncTransport {
   DioSyncTransport(this._dio, {FishTraceDatabase? database})
     : _database = database;
@@ -647,10 +656,14 @@ class DioSyncTransport implements SyncTransport {
         'origin': source['origin'],
         'destination': source['destination'],
         'estimated_distance_km': source['distanceKm'],
-        'origin_latitude': source['originLatitude'],
-        'origin_longitude': source['originLongitude'],
-        'destination_latitude': source['destinationLatitude'],
-        'destination_longitude': source['destinationLongitude'],
+        if (source['originLatitude'] != null)
+          'origin_latitude': source['originLatitude'],
+        if (source['originLongitude'] != null)
+          'origin_longitude': source['originLongitude'],
+        if (source['destinationLatitude'] != null)
+          'destination_latitude': source['destinationLatitude'],
+        if (source['destinationLongitude'] != null)
+          'destination_longitude': source['destinationLongitude'],
         if (source['scheduledAt'] != null)
           'scheduled_at': DateTime.parse(
             source['scheduledAt'].toString(),
@@ -978,9 +991,9 @@ class AppController extends GetxController {
     Future<Directory> Function()? attachmentRoot,
     this.autoSync = false,
   }) : _offlineRepository = offlineRepository ?? MemoryOfflineRepository(),
-       _syncTransport = syncTransport ?? MockSyncTransport(),
+       _syncTransport = syncTransport ?? const DisabledSyncTransport(),
        _tokenStore = tokenStore,
-       _sensorStream = sensorStream ?? MockSensorStream(),
+       _sensorStream = sensorStream ?? const DisabledSensorStream(),
        _sensorAlertHandler = sensorAlertHandler,
        _attachmentRoot = attachmentRoot ?? getApplicationSupportDirectory,
        _firebaseSession = firebaseSession ?? _NoopFirebaseSessionRepository();

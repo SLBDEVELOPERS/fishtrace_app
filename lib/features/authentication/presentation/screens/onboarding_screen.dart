@@ -61,7 +61,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   @override
   Widget build(BuildContext context) => FishTraceScaffold(
-    backgroundColor: FishTraceColors.surface,
+    backgroundColor: Theme.of(context).colorScheme.surface,
     body: Column(
       children: [
         Align(
@@ -177,7 +177,7 @@ class _OnboardingPageView extends StatelessWidget {
             page.message,
             textAlign: TextAlign.center,
             style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-              color: FishTraceColors.textSecondary,
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
             ),
           ),
           const Spacer(),

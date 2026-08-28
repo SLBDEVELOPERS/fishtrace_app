@@ -16,7 +16,9 @@ import '../../domain/entities/fisher_entities.dart';
 import '../controllers/fisher_controller.dart';
 
 class AddCatchScreen extends StatefulWidget {
-  const AddCatchScreen({super.key});
+  const AddCatchScreen({super.key, this.now = DateTime.now});
+
+  final DateTime Function() now;
 
   @override
   State<AddCatchScreen> createState() => _AddCatchScreenState();
@@ -34,7 +36,7 @@ class _AddCatchScreenState extends State<AddCatchScreen> {
   String? _species;
   String? _gear;
   var _condition = 'Good';
-  var _caughtAt = DateTime.now();
+  late DateTime _caughtAt;
   var _latitude = 17.6858;
   var _longitude = 83.2185;
   var _locationCaptured = false;
@@ -45,6 +47,7 @@ class _AddCatchScreenState extends State<AddCatchScreen> {
   void initState() {
     super.initState();
     _controller = Get.find<FisherController>();
+    _caughtAt = widget.now();
   }
 
   @override
@@ -171,8 +174,8 @@ class _AddCatchScreenState extends State<AddCatchScreen> {
   Future<void> _pickCatchTime() async {
     final date = await showDatePicker(
       context: context,
-      firstDate: DateTime.now().subtract(const Duration(days: 30)),
-      lastDate: DateTime.now(),
+      firstDate: widget.now().subtract(const Duration(days: 30)),
+      lastDate: widget.now(),
       initialDate: _caughtAt,
     );
     if (date == null || !mounted) return;
@@ -219,6 +222,7 @@ class _AddCatchScreenState extends State<AddCatchScreen> {
     final catchRecord = FisherCatch(
       id: id,
       tripId: _controller.activeTrip.value!.id,
+      tripCode: _controller.activeTrip.value!.tripCode,
       species: species.commonName,
       scientificName: species.scientificName,
       weightKg: double.parse(_weight.text),
@@ -348,9 +352,11 @@ class _AddCatchScreenState extends State<AddCatchScreen> {
           ),
           Container(
             padding: const EdgeInsets.fromLTRB(16, 10, 16, 12),
-            decoration: const BoxDecoration(
-              color: FishTraceColors.surface,
-              border: Border(top: BorderSide(color: FishTraceColors.border)),
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.surface,
+              border: Border(
+                top: BorderSide(color: Theme.of(context).dividerColor),
+              ),
             ),
             child: Row(
               children: [
@@ -600,8 +606,7 @@ class _AddCatchScreenState extends State<AddCatchScreen> {
     if (shouldOpen) await openSettings();
   }
 
-  void _message(String text) =>
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(text)));
+  void _message(String text) => FishTraceFeedback.warning(context, text);
 }
 
 class _StepHeader extends StatelessWidget {
@@ -611,7 +616,7 @@ class _StepHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Container(
-    color: FishTraceColors.surface,
+    color: Theme.of(context).colorScheme.surface,
     padding: const EdgeInsets.fromLTRB(16, 10, 16, 12),
     child: Row(
       children: [
@@ -621,7 +626,7 @@ class _StepHeader extends StatelessWidget {
               child: Divider(
                 color: index <= current
                     ? FishTraceColors.primary
-                    : FishTraceColors.border,
+                    : Theme.of(context).dividerColor,
               ),
             ),
           Column(
@@ -633,7 +638,7 @@ class _StepHeader extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: index <= current
                       ? FishTraceColors.primary
-                      : FishTraceColors.surface,
+                      : Theme.of(context).colorScheme.surface,
                   shape: BoxShape.circle,
                   border: Border.all(
                     color: index <= current

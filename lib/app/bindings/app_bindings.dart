@@ -6,6 +6,7 @@ import '../../core/data/repositories.dart';
 import '../../core/database/fishtrace_database.dart';
 import '../../core/network/api_client.dart';
 import '../../core/network/error_mapper.dart';
+import '../../core/network/offline_api_cache.dart';
 import '../../core/network/sensor_stream.dart';
 import '../../core/notifications/notification_service.dart';
 import '../../core/storage/secure_token_store.dart';
@@ -15,7 +16,6 @@ import '../../features/authentication/data/repositories/secure_onboarding_reposi
 import '../../features/authentication/domain/repositories/firebase_session_repository.dart';
 import '../../features/authentication/presentation/controllers/authentication_controller.dart';
 import '../../features/common/data/repositories/dio_common_repository.dart';
-import '../../features/common/data/repositories/mock_common_repository.dart';
 import '../../features/common/data/repositories/profile_repositories.dart';
 import '../../features/common/data/repositories/file_repositories.dart';
 import '../../features/common/data/repositories/secure_mobile_settings_repository.dart';
@@ -27,22 +27,18 @@ import '../../features/common/presentation/controllers/common_controller.dart';
 import '../../features/common/presentation/controllers/mobile_settings_controller.dart';
 import '../../features/common/presentation/controllers/upload_controller.dart';
 import '../../features/fisher/data/repositories/dio_fisher_repository.dart';
-import '../../features/fisher/data/repositories/mock_fisher_repository.dart';
 import '../../features/fisher/data/repositories/offline_first_fisher_repository.dart';
 import '../../features/fisher/data/repositories/open_meteo_marine_weather_repository.dart';
 import '../../features/fisher/domain/repositories/fisher_repository.dart';
 import '../../features/fisher/presentation/controllers/fisher_controller.dart';
 import '../../features/processor/data/repositories/dio_processor_repository.dart';
-import '../../features/processor/data/repositories/mock_processor_repository.dart';
 import '../../features/processor/domain/repositories/processor_repository.dart';
 import '../../features/processor/presentation/controllers/processor_controller.dart';
 import '../../features/retailer/data/repositories/dio_retailer_repository.dart';
-import '../../features/retailer/data/repositories/mock_retailer_repository.dart';
 import '../../features/retailer/domain/repositories/retailer_repository.dart';
 import '../../features/retailer/presentation/controllers/retailer_controller.dart';
 import '../../features/retailer/presentation/controllers/retail_reports_controller.dart';
 import '../../features/transporter/data/repositories/dio_transporter_repository.dart';
-import '../../features/transporter/data/repositories/mock_transporter_repository.dart';
 import '../../features/transporter/data/repositories/sensor_repositories.dart';
 import '../../features/transporter/domain/repositories/transporter_repository.dart';
 import '../../features/transporter/domain/repositories/sensor_repositories.dart';
@@ -90,55 +86,56 @@ class InitialBinding extends Bindings {
     );
     Get.put(mobileSettings, permanent: true);
 
-    final firebaseSession = config.isMock || !config.firebaseEnabled
-        ? MockFirebaseSessionRepository()
-        : ApiFirebaseSessionRepository(apiClient);
+    final firebaseSession = config.firebaseEnabled
+        ? ApiFirebaseSessionRepository(apiClient)
+        : const DisabledFirebaseSessionRepository();
     Get.put<FirebaseSessionRepository>(firebaseSession, permanent: true);
 
-    final auth = config.isMock
-        ? MockAuthRepository()
-        : ApiAuthRepository(apiClient, tokenStore: tokenStore);
+    final auth = ApiAuthRepository(apiClient, tokenStore: tokenStore);
     final offlineRepository = DriftOfflineRepository(database);
     Get.put<OfflineRepository>(offlineRepository, permanent: true);
     Get.put<SyncRepository>(offlineRepository, permanent: true);
     final session = AppController(
       auth: auth,
       offlineRepository: offlineRepository,
-      syncTransport: config.isMock
-          ? MockSyncTransport()
-          : DioSyncTransport(dio, database: database),
+      syncTransport: DioSyncTransport(dio, database: database),
       tokenStore: tokenStore,
-      sensorStream: MockSensorStream(),
+      sensorStream: const DisabledSensorStream(),
       sensorAlertHandler: (reading) =>
           mobileSettings.settings.value.temperatureAlerts
           ? notificationService.showColdChainAlert(reading)
           : Future<void>.value(),
       firebaseSession: firebaseSession,
-      autoSync: !config.isMock,
+      autoSync: true,
     );
     Get.put(session, permanent: true);
     Get.put(SyncController(session), permanent: true);
+    Get.put(
+      OfflineApiCache(
+        database: database,
+        isOffline: () => session.offline.value,
+        userScope: () => session.user.value?.id ?? session.user.value?.email,
+      ),
+      permanent: true,
+    );
 
     AuthenticationBinding(storage).dependencies();
-    CommonBinding(config, apiClient).dependencies();
-    FileBinding(config, apiClient).dependencies();
-    FisherBinding(config, database, apiClient, session).dependencies();
-    ProcessorBinding(config, apiClient, session).dependencies();
-    TransporterBinding(config, apiClient, session).dependencies();
+    CommonBinding(apiClient).dependencies();
+    FileBinding(apiClient).dependencies();
+    FisherBinding(database, apiClient, session).dependencies();
+    ProcessorBinding(apiClient, session).dependencies();
+    TransporterBinding(apiClient, session).dependencies();
     LiveMonitoringBinding(config, apiClient, session).dependencies();
-    RetailerBinding(config, apiClient, session).dependencies();
+    RetailerBinding(apiClient, session).dependencies();
   }
 }
 
 class FileBinding extends Bindings {
-  FileBinding(this.config, this.api);
-  final AppConfig config;
+  FileBinding(this.api);
   final ApiClient api;
   @override
   void dependencies() {
-    Get.lazyPut<FileRepository>(
-      () => config.isMock ? MockFileRepository() : ApiFileRepository(api),
-    );
+    Get.lazyPut<FileRepository>(() => ApiFileRepository(api));
     Get.lazyPut(
       () => UploadController(Get.find<FileRepository>()),
       fenix: true,
@@ -160,20 +157,15 @@ class AuthenticationBinding extends Bindings {
 }
 
 class CommonBinding extends Bindings {
-  CommonBinding(this.config, this.api);
-  final AppConfig config;
+  CommonBinding(this.api);
   final ApiClient api;
   @override
   void dependencies() {
-    Get.lazyPut<CommonRepository>(
-      () => config.isMock ? MockCommonRepository() : DioCommonRepository(api),
-    );
+    Get.lazyPut<CommonRepository>(() => DioCommonRepository(api));
     Get.lazyPut<NotificationRepository>(() => Get.find<CommonRepository>());
     Get.lazyPut<SupportRepository>(() => Get.find<CommonRepository>());
     Get.lazyPut<ProfileRepository>(
-      () => config.isMock
-          ? MockProfileRepository()
-          : ApiProfileRepository(api, Get.find<AppController>().auth),
+      () => ApiProfileRepository(api, Get.find<AppController>().auth),
     );
     Get.lazyPut(
       () => CommonController(Get.find<CommonRepository>()),
@@ -190,14 +182,10 @@ class LiveMonitoringBinding extends Bindings {
 
   @override
   void dependencies() {
-    Get.lazyPut<SensorRepository>(
-      () => config.isMock
-          ? MockSensorRepository(MockSensorStream())
-          : LaravelSensorRepository(api),
-    );
+    Get.lazyPut<SensorRepository>(() => LaravelSensorRepository(api));
     Get.lazyPut<LiveSensorRepository>(
-      () => config.isMock || !config.firebaseEnabled
-          ? MockLiveSensorRepository(MockSensorStream())
+      () => !config.firebaseEnabled
+          ? PollingLiveSensorRepository(Get.find<SensorRepository>())
           : FirebaseLiveSensorRepository(
               api: api,
               session: Get.find<FirebaseSessionRepository>(),
@@ -215,8 +203,7 @@ class LiveMonitoringBinding extends Bindings {
 }
 
 class FisherBinding extends Bindings {
-  FisherBinding(this.config, this.database, this.api, this.session);
-  final AppConfig config;
+  FisherBinding(this.database, this.api, this.session);
   final FishTraceDatabase database;
   final ApiClient api;
   final AppController session;
@@ -224,9 +211,7 @@ class FisherBinding extends Bindings {
   void dependencies() {
     Get.lazyPut<FisherRepository>(
       () => OfflineFirstFisherRepository(
-        remote: config.isMock
-            ? MockFisherRepository()
-            : DioFisherRepository(api),
+        remote: DioFisherRepository(api),
         database: database,
         isOffline: () => session.offline.value,
         queueBoat: (boat) async {
@@ -247,7 +232,7 @@ class FisherBinding extends Bindings {
             },
           );
         },
-        canUseRemote: () => config.isMock || !session.offline.value,
+        canUseRemote: () => !session.offline.value,
       ),
     );
     Get.lazyPut<BoatRepository>(() => Get.find<FisherRepository>());
@@ -266,16 +251,13 @@ class FisherBinding extends Bindings {
 }
 
 class ProcessorBinding extends Bindings {
-  ProcessorBinding(this.config, this.api, this.session);
-  final AppConfig config;
+  ProcessorBinding(this.api, this.session);
   final ApiClient api;
   final AppController session;
   @override
   void dependencies() {
     Get.lazyPut<ProcessorRepository>(
-      () => config.isMock
-          ? MockProcessorRepository()
-          : DioProcessorRepository(api),
+      () => DioProcessorRepository(api, cache: Get.find<OfflineApiCache>()),
     );
     Get.lazyPut<IncomingBatchRepository>(() => Get.find<ProcessorRepository>());
     Get.lazyPut<ProcessingRepository>(() => Get.find<ProcessorRepository>());
@@ -293,16 +275,13 @@ class ProcessorBinding extends Bindings {
 }
 
 class TransporterBinding extends Bindings {
-  TransporterBinding(this.config, this.api, this.session);
-  final AppConfig config;
+  TransporterBinding(this.api, this.session);
   final ApiClient api;
   final AppController session;
   @override
   void dependencies() {
     Get.lazyPut<TransporterRepository>(
-      () => config.isMock
-          ? MockTransporterRepository()
-          : DioTransporterRepository(api),
+      () => DioTransporterRepository(api, cache: Get.find<OfflineApiCache>()),
     );
     Get.lazyPut<TransportTripRepository>(
       () => Get.find<TransporterRepository>(),
@@ -324,15 +303,13 @@ class TransporterBinding extends Bindings {
 }
 
 class RetailerBinding extends Bindings {
-  RetailerBinding(this.config, this.api, this.session);
-  final AppConfig config;
+  RetailerBinding(this.api, this.session);
   final ApiClient api;
   final AppController session;
   @override
   void dependencies() {
     Get.lazyPut<RetailerRepository>(
-      () =>
-          config.isMock ? MockRetailerRepository() : DioRetailerRepository(api),
+      () => DioRetailerRepository(api, cache: Get.find<OfflineApiCache>()),
     );
     Get.lazyPut<InventoryRepository>(() => Get.find<RetailerRepository>());
     Get.lazyPut<RetailAlertRepository>(() => Get.find<RetailerRepository>());

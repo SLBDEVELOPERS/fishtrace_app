@@ -42,7 +42,6 @@ class _FishTracePrimaryButtonState extends State<FishTracePrimaryButton> {
     final loading = widget.loading || _running;
     return SizedBox(
       width: double.infinity,
-      height: FishTraceSizes.button,
       child: FilledButton(
         onPressed: loading || widget.onPressed == null ? null : _handlePressed,
         child: loading
@@ -61,9 +60,11 @@ class _FishTracePrimaryButtonState extends State<FishTracePrimaryButton> {
                     const SizedBox(width: FishTraceSpacing.xs),
                   ],
                   Flexible(
-                    child: FittedBox(
-                      fit: BoxFit.scaleDown,
-                      child: Text(widget.label, maxLines: 1),
+                    child: Text(
+                      widget.label,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      textAlign: TextAlign.center,
                     ),
                   ),
                 ],
@@ -109,7 +110,6 @@ class _FishTraceSecondaryButtonState extends State<FishTraceSecondaryButton> {
   @override
   Widget build(BuildContext context) => SizedBox(
     width: double.infinity,
-    height: FishTraceSizes.button,
     child: OutlinedButton(
       onPressed: _running || widget.onPressed == null ? null : _handlePressed,
       child: _running
@@ -125,9 +125,11 @@ class _FishTraceSecondaryButtonState extends State<FishTraceSecondaryButton> {
                   const SizedBox(width: FishTraceSpacing.xs),
                 ],
                 Flexible(
-                  child: FittedBox(
-                    fit: BoxFit.scaleDown,
-                    child: Text(widget.label, maxLines: 1),
+                  child: Text(
+                    widget.label,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    textAlign: TextAlign.center,
                   ),
                 ),
               ],
@@ -173,7 +175,6 @@ class _FishTraceDestructiveButtonState
   @override
   Widget build(BuildContext context) => SizedBox(
     width: double.infinity,
-    height: FishTraceSizes.button,
     child: OutlinedButton.icon(
       onPressed: _running || widget.onPressed == null ? null : _handlePressed,
       style: OutlinedButton.styleFrom(
@@ -186,9 +187,11 @@ class _FishTraceDestructiveButtonState
               child: CircularProgressIndicator(strokeWidth: 2),
             )
           : Icon(widget.icon ?? Icons.delete_outline, size: 18),
-      label: FittedBox(
-        fit: BoxFit.scaleDown,
-        child: Text(_running ? 'Please wait...' : widget.label, maxLines: 1),
+      label: Text(
+        _running ? 'Please wait...' : widget.label,
+        maxLines: 2,
+        overflow: TextOverflow.ellipsis,
+        textAlign: TextAlign.center,
       ),
     ),
   );

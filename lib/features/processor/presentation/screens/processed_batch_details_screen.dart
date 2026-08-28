@@ -57,7 +57,7 @@ class ProcessedBatchDetailsScreen extends StatelessWidget {
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    job.batchId,
+                    job.batchLabel,
                     style: Theme.of(context).textTheme.titleSmall,
                   ),
                 ),
@@ -155,7 +155,10 @@ class _TimelineRow extends StatelessWidget {
               ),
               if (!last)
                 Expanded(
-                  child: Container(width: 1, color: FishTraceColors.border),
+                  child: Container(
+                    width: 1,
+                    color: Theme.of(context).dividerColor,
+                  ),
                 ),
             ],
           ),

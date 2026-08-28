@@ -133,6 +133,7 @@ class RetailAlertsScreen extends StatelessWidget {
                                             controller,
                                             alert.batchId!,
                                             alert.id,
+                                            alert.batchLabel!,
                                           ),
                                           icon: const Icon(
                                             Icons.block,
@@ -213,13 +214,14 @@ class RetailAlertsScreen extends StatelessWidget {
     RetailerController controller,
     String batchId,
     String alertId,
+    String batchLabel,
   ) async {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Quarantine batch?'),
         content: Text(
-          '$batchId will be blocked from sale and queued for sync.',
+          '$batchLabel will be blocked from sale and queued for sync.',
         ),
         actions: [
           TextButton(
@@ -236,8 +238,9 @@ class RetailAlertsScreen extends StatelessWidget {
     if (confirmed != true) return;
     await controller.quarantine(batchId, alertId: alertId);
     if (context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Batch quarantined and queued for sync.')),
+      FishTraceFeedback.warning(
+        context,
+        'Batch quarantined and queued for sync.',
       );
     }
   }

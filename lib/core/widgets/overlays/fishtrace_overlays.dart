@@ -4,6 +4,179 @@ import '../../../app/theme/fishtrace_colors.dart';
 import '../../../app/theme/fishtrace_dimensions.dart';
 import '../buttons/fishtrace_buttons.dart';
 
+enum FishTraceFeedbackTone { success, info, warning, error }
+
+/// Transient feedback for completed actions and recoverable conditions.
+///
+/// Field validation remains inline, while blocking or destructive decisions use
+/// dialogs/bottom sheets. Calling this API replaces any currently visible
+/// feedback so operational messages never stack over one another.
+abstract final class FishTraceFeedback {
+  static ScaffoldFeatureController<SnackBar, SnackBarClosedReason>? success(
+    BuildContext context,
+    String message, {
+    String? actionLabel,
+    VoidCallback? onAction,
+  }) => show(
+    context,
+    message,
+    tone: FishTraceFeedbackTone.success,
+    actionLabel: actionLabel,
+    onAction: onAction,
+  );
+
+  static ScaffoldFeatureController<SnackBar, SnackBarClosedReason>? info(
+    BuildContext context,
+    String message, {
+    String? actionLabel,
+    VoidCallback? onAction,
+  }) => show(
+    context,
+    message,
+    tone: FishTraceFeedbackTone.info,
+    actionLabel: actionLabel,
+    onAction: onAction,
+  );
+
+  static ScaffoldFeatureController<SnackBar, SnackBarClosedReason>? warning(
+    BuildContext context,
+    String message, {
+    String? actionLabel,
+    VoidCallback? onAction,
+  }) => show(
+    context,
+    message,
+    tone: FishTraceFeedbackTone.warning,
+    actionLabel: actionLabel,
+    onAction: onAction,
+  );
+
+  static ScaffoldFeatureController<SnackBar, SnackBarClosedReason>? error(
+    BuildContext context,
+    String message, {
+    String? actionLabel,
+    VoidCallback? onAction,
+  }) => show(
+    context,
+    message,
+    tone: FishTraceFeedbackTone.error,
+    actionLabel: actionLabel,
+    onAction: onAction,
+  );
+
+  static ScaffoldFeatureController<SnackBar, SnackBarClosedReason>? show(
+    BuildContext context,
+    String message, {
+    FishTraceFeedbackTone tone = FishTraceFeedbackTone.info,
+    String? actionLabel,
+    VoidCallback? onAction,
+  }) {
+    final messenger = ScaffoldMessenger.maybeOf(context);
+    if (messenger == null) return null;
+    return showForMessenger(
+      messenger,
+      message,
+      tone: tone,
+      actionLabel: actionLabel,
+      onAction: onAction,
+    );
+  }
+
+  static ScaffoldFeatureController<SnackBar, SnackBarClosedReason>
+  showForMessenger(
+    ScaffoldMessengerState messenger,
+    String message, {
+    FishTraceFeedbackTone tone = FishTraceFeedbackTone.info,
+    String? actionLabel,
+    VoidCallback? onAction,
+  }) {
+    assert(
+      (actionLabel == null) == (onAction == null),
+      'actionLabel and onAction must be supplied together.',
+    );
+    messenger.hideCurrentSnackBar();
+    return messenger.showSnackBar(
+      SnackBar(
+        content: _FeedbackContent(message: message, tone: tone),
+        backgroundColor: _background(tone),
+        behavior: SnackBarBehavior.floating,
+        duration: _duration(tone),
+        dismissDirection: DismissDirection.down,
+        showCloseIcon: actionLabel == null,
+        closeIconColor: Colors.white.withValues(alpha: .82),
+        action: actionLabel == null
+            ? null
+            : SnackBarAction(
+                label: actionLabel,
+                textColor: Colors.white,
+                onPressed: onAction!,
+              ),
+      ),
+    );
+  }
+
+  static Color _background(FishTraceFeedbackTone tone) => switch (tone) {
+    FishTraceFeedbackTone.success => const Color(0xFF0B6247),
+    FishTraceFeedbackTone.info => FishTraceColors.navy,
+    FishTraceFeedbackTone.warning => const Color(0xFF704100),
+    FishTraceFeedbackTone.error => const Color(0xFF982C36),
+  };
+
+  static Duration _duration(FishTraceFeedbackTone tone) => switch (tone) {
+    FishTraceFeedbackTone.success => const Duration(seconds: 3),
+    FishTraceFeedbackTone.info => const Duration(seconds: 4),
+    FishTraceFeedbackTone.warning => const Duration(seconds: 5),
+    FishTraceFeedbackTone.error => const Duration(seconds: 6),
+  };
+}
+
+class _FeedbackContent extends StatelessWidget {
+  const _FeedbackContent({required this.message, required this.tone});
+
+  final String message;
+  final FishTraceFeedbackTone tone;
+
+  @override
+  Widget build(BuildContext context) {
+    final (label, icon) = switch (tone) {
+      FishTraceFeedbackTone.success => ('Success', Icons.check_circle_outline),
+      FishTraceFeedbackTone.info => ('Information', Icons.info_outline),
+      FishTraceFeedbackTone.warning => ('Warning', Icons.warning_amber_rounded),
+      FishTraceFeedbackTone.error => ('Error', Icons.error_outline),
+    };
+    return Semantics(
+      container: true,
+      liveRegion: true,
+      label: '$label: $message',
+      child: Row(
+        children: [
+          Container(
+            width: 32,
+            height: 32,
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: .12),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(icon, size: 19, color: Colors.white),
+          ),
+          const SizedBox(width: FishTraceSpacing.sm),
+          Expanded(
+            child: Text(
+              message,
+              maxLines: 3,
+              overflow: TextOverflow.ellipsis,
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: Colors.white,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class FilterBottomSheet extends StatelessWidget {
   const FilterBottomSheet({
     super.key,

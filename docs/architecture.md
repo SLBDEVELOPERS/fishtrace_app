@@ -9,11 +9,9 @@ The presentation layer uses GetX observable controllers. Screens invoke reposito
 controller methods and never access SQLite or Dio directly. `go_router` protects each
 role prefix and redirects authenticated users away from another role's routes.
 
-Mock and API modes are selected with
-`--dart-define=DATA_SOURCE_MODE=mock|api`. Authentication,
-common, Fisher, Processor, Transporter, Retailer and sync boundaries all have mock and
-Laravel implementations. Organized GetX bindings select exactly one implementation per
-interface, including the narrower feature contracts exposed by each role aggregate.
+Runtime configuration is API-only; non-API `DATA_SOURCE_MODE` or `APP_MODE` values
+fail at startup. Organized GetX bindings register Laravel-backed implementations for
+every repository interface, including the narrower contracts exposed by each role aggregate.
 API paths are centralized, and snake_case DTO mappers isolate backend JSON from
 domain/controller state. API mode uses Firebase Realtime Database for authorized live updates plus
 Laravel REST latest/history fallback through the sensor repository interfaces.
@@ -23,10 +21,11 @@ adapters so camera, location and notification permissions can be tested independ
 The screen catalogue exposes 40 dedicated primary screens. Role routes use
 explicit typed paths and no generic workflow fallback. Shared/common, fisher,
 processor, transporter and retailer features each own their domain entities,
-repository contracts, mock data, controllers and presentation screens.
+repository contracts, controllers and presentation screens. Test doubles remain test-only.
 
-Offline Fisher domain data and mutations are written to typed Drift tables with
-idempotency metadata. Connectivity
+Offline Fisher domain data and all role mutations are written to Drift with
+idempotency metadata. Successful Processor, Transporter, and Retailer API directories
+are cached per authenticated user for offline reads. Connectivity
 changes update the global offline state and trigger retry when the network
 returns. API authentication stores tokens with secure storage and Dio injects
 the bearer token, refreshes on 401 and replays the original request once; an

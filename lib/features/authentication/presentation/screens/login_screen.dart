@@ -203,12 +203,9 @@ class _LoginScreenState extends State<LoginScreen> {
   );
 
   void _showSocialConfiguration(String provider) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          '$provider sign-in requires provider credentials in API mode.',
-        ),
-      ),
+    FishTraceFeedback.info(
+      context,
+      '$provider sign-in requires provider credentials in API mode.',
     );
   }
 }

@@ -1,6 +1,5 @@
 import 'package:dio/dio.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:get/get.dart';
@@ -22,10 +21,12 @@ import 'configuration/app_environment.dart';
 Future<void> bootstrap() async {
   WidgetsFlutterBinding.ensureInitialized();
   AppErrorHandler.instance.install();
-  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-  await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
-
   final config = AppConfig.fromDefines();
+  if (config.firebaseEnabled) {
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+  }
   final database = await FishTraceDatabase.open();
   const storage = FlutterSecureStorage();
   const tokenStore = SecureTokenStore(storage);
@@ -64,7 +65,7 @@ Future<void> bootstrap() async {
   final session = Get.find<AppController>();
   apiInterceptor.onUnauthorized = session.expireSession;
   await session.startConnectivityMonitoring();
-  if (!config.isMock) await session.restoreSession();
+  await session.restoreSession();
 
   runApp(const FishTraceApp());
 }

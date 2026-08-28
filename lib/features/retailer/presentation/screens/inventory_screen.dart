@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:intl/intl.dart';
 
 import '../../../../app/theme/fishtrace_colors.dart';
 import '../../../../core/models/models.dart';
+import '../../../../core/utils/fishtrace_time.dart';
 import '../../../../core/widgets/fishtrace_widgets.dart';
 import '../../../common/presentation/widgets/role_bottom_bar.dart';
 import '../../../common/presentation/formatters/currency_formatter.dart';
@@ -29,7 +29,7 @@ class InventoryScreen extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
               child: FishTraceSearchField(
-                hint: 'Search products or batch ID',
+                hint: 'Search products or batch code',
                 onChanged: (value) => controller.search.value = value,
               ),
             ),
@@ -89,7 +89,10 @@ class InventoryScreen extends StatelessWidget {
                           stock: '${product.stockKg.toStringAsFixed(1)} kg',
                           expiry: product.expiry == null
                               ? 'Not available'
-                              : DateFormat('MMM d, y').format(product.expiry!),
+                              : FishTraceTime.format(
+                                  product.expiry!,
+                                  'MMM d, y',
+                                ),
                           status: product.quarantined
                               ? 'Quarantined'
                               : product.lowStock
@@ -160,7 +163,7 @@ class InventoryScreen extends StatelessWidget {
             FishTraceCard(
               child: Column(
                 children: [
-                  _Detail('Batch ID', product.batchId),
+                  _Detail('Batch code', product.batchLabel),
                   _Detail('Available stock', '${product.stockKg} kg'),
                   _Detail(
                     'Unit price',
@@ -172,7 +175,7 @@ class InventoryScreen extends StatelessWidget {
                     'Expiry',
                     product.expiry == null
                         ? 'Not available'
-                        : DateFormat('MMM d, y').format(product.expiry!),
+                        : FishTraceTime.format(product.expiry!, 'MMM d, y'),
                   ),
                 ],
               ),
@@ -198,12 +201,9 @@ class InventoryScreen extends StatelessWidget {
               icon: Icons.qr_code,
               onPressed: () {
                 Navigator.pop(context);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(
-                      'Traceability loaded for ${product.batchLabel}',
-                    ),
-                  ),
+                FishTraceFeedback.success(
+                  context,
+                  'Traceability loaded for ${product.batchLabel}',
                 );
               },
             ),

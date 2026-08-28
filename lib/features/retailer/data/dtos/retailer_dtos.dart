@@ -62,6 +62,7 @@ class RetailAlertDto {
           ? null
           : lastDetectedAt,
       batchId: ApiData.value(json, 'fishBatchId')?.toString(),
+      batchCode: ApiData.string(batch, 'batchCode'),
     );
   }
 }

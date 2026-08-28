@@ -19,13 +19,16 @@ class FisherController extends GetxController {
     required FisherRepository repository,
     required AppController session,
     MarineWeatherRepository? weatherRepository,
+    String Function(String prefix)? localIdGenerator,
   }) : _repository = repository,
        _session = session,
-       _weatherRepository = weatherRepository;
+       _weatherRepository = weatherRepository,
+       _localIdGenerator = localIdGenerator;
 
   final FisherRepository _repository;
   final AppController _session;
   final MarineWeatherRepository? _weatherRepository;
+  final String Function(String prefix)? _localIdGenerator;
   final _uuid = const Uuid();
 
   final boats = <FisherBoat>[].obs;
@@ -328,6 +331,7 @@ class FisherController extends GetxController {
     if (current == null) return;
     final completed = ActiveFishingTrip(
       id: current.id,
+      tripCode: current.tripCode,
       boatId: current.boatId,
       boatName: current.boatName,
       startedAt: current.startedAt,
@@ -347,6 +351,7 @@ class FisherController extends GetxController {
   }
 
   String nextLocalId(String prefix) =>
+      _localIdGenerator?.call(prefix) ??
       '$prefix-${_uuid.v4().split('-').first.toUpperCase()}';
 
   Future<void> queueOperation(

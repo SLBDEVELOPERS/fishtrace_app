@@ -44,6 +44,7 @@ class MemoryMobileSettingsRepository implements MobileSettingsRepository {
 
 AppController registerTestDependencies({UserRole? role}) {
   Get.reset();
+  var localIdSequence = 0;
   final session = AppController(auth: MockAuthRepository());
   if (role != null) {
     session.user.value = User(
@@ -67,7 +68,12 @@ AppController registerTestDependencies({UserRole? role}) {
   Get.put(CommonController(MockCommonRepository()), permanent: true);
   Get.put<ProfileRepository>(MockProfileRepository(), permanent: true);
   Get.put(
-    FisherController(repository: MockFisherRepository(), session: session),
+    FisherController(
+      repository: MockFisherRepository(),
+      session: session,
+      localIdGenerator: (prefix) =>
+          '$prefix-TEST-${(++localIdSequence).toString().padLeft(3, '0')}',
+    ),
     permanent: true,
   );
   Get.put(

@@ -45,9 +45,7 @@ class _QualityInspectionScreenState extends State<QualityInspectionScreen> {
   Future<void> _save({required bool draft}) async {
     if (!draft && !_formKey.currentState!.validate()) return;
     if (_controller.selectedBatch.value == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Select a batch before inspection')),
-      );
+      FishTraceFeedback.warning(context, 'Select a batch before inspection');
       return;
     }
     final grades = _controller.referenceData.value.qualityGrades;
@@ -55,9 +53,7 @@ class _QualityInspectionScreenState extends State<QualityInspectionScreen> {
         grades.firstWhereOrNull((item) => item.code == _grade) ??
         grades.firstOrNull;
     if (grade == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Quality grades are not available')),
-      );
+      FishTraceFeedback.error(context, 'Quality grades are not available');
       return;
     }
     setState(() => _saving = true);
@@ -80,20 +76,18 @@ class _QualityInspectionScreenState extends State<QualityInspectionScreen> {
       );
       if (!mounted) return;
       if (draft) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('Inspection draft saved')));
+        FishTraceFeedback.success(context, 'Inspection draft saved');
         return;
       }
       if (queued.status != SyncStatus.synced) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              queued.status == SyncStatus.failed
-                  ? queued.lastError ?? 'Inspection submission failed.'
-                  : 'Inspection is queued. Continue after it syncs.',
-            ),
-          ),
+        FishTraceFeedback.show(
+          context,
+          queued.status == SyncStatus.failed
+              ? queued.lastError ?? 'Inspection submission failed.'
+              : 'Inspection is queued. Continue after it syncs.',
+          tone: queued.status == SyncStatus.failed
+              ? FishTraceFeedbackTone.error
+              : FishTraceFeedbackTone.warning,
         );
         return;
       }
@@ -163,11 +157,11 @@ class _QualityInspectionScreenState extends State<QualityInspectionScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Batch ID',
+                        'Batch code',
                         style: Theme.of(context).textTheme.bodySmall,
                       ),
                       Text(
-                        _controller.selectedBatch.value?.id ??
+                        _controller.selectedBatch.value?.label ??
                             'No batch selected',
                         style: Theme.of(context).textTheme.titleSmall,
                       ),

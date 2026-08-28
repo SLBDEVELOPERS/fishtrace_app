@@ -316,19 +316,14 @@ class _BoatEditorSheetState extends State<_BoatEditorSheet> {
                     if (context.mounted) Navigator.pop(context);
                   } on AppException catch (error) {
                     if (context.mounted) {
-                      ScaffoldMessenger.of(
-                        context,
-                      ).showSnackBar(SnackBar(content: Text(error.message)));
+                      FishTraceFeedback.error(context, error.message);
                       setState(() => _saving = false);
                     }
                   } catch (_) {
                     if (context.mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text(
-                            'The boat could not be saved. Please try again.',
-                          ),
-                        ),
+                      FishTraceFeedback.error(
+                        context,
+                        'The boat could not be saved. Please try again.',
                       );
                       setState(() => _saving = false);
                     }

@@ -1,4 +1,5 @@
 import '../../../../core/models/models.dart';
+import '../../../../core/utils/display_identifier.dart';
 
 class RetailProduct {
   const RetailProduct({
@@ -31,7 +32,8 @@ class RetailProduct {
   final double? lowStockThreshold;
   final bool quarantined;
 
-  String get batchLabel => batchCode.isNotEmpty ? batchCode : batchId;
+  String get batchLabel =>
+      DisplayIdentifier.resolve(id: batchId, code: batchCode, noun: 'Batch');
 
   bool get lowStock =>
       lowStockThreshold != null && stockKg <= lowStockThreshold!;
@@ -70,6 +72,7 @@ class RetailAlertView {
     this.thresholdValue,
     this.lastDetectedAt,
     this.batchId,
+    this.batchCode = '',
   });
 
   final String id;
@@ -83,6 +86,11 @@ class RetailAlertView {
   final double? thresholdValue;
   final DateTime? lastDetectedAt;
   final String? batchId;
+  final String batchCode;
+
+  String? get batchLabel => batchId == null
+      ? null
+      : DisplayIdentifier.resolve(id: batchId!, code: batchCode, noun: 'Batch');
 
   RetailAlertView copyWith({String? status}) => RetailAlertView(
     id: id,
@@ -96,6 +104,7 @@ class RetailAlertView {
     thresholdValue: thresholdValue,
     lastDetectedAt: lastDetectedAt,
     batchId: batchId,
+    batchCode: batchCode,
   );
 }
 
@@ -142,7 +151,8 @@ class ReceivedRetailBatch {
   final String labelCode;
   final String traceUrl;
 
-  String get label => labelCode.isNotEmpty ? labelCode : id;
+  String get label =>
+      DisplayIdentifier.resolve(id: id, code: labelCode, noun: 'Package');
 
   bool matchesScan(String value) {
     final normalized = value.trim().toLowerCase();

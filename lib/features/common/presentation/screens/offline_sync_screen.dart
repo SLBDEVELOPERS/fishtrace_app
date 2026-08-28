@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:intl/intl.dart';
 
 import '../../../../app/theme/fishtrace_colors.dart';
 import '../../../../app/theme/fishtrace_dimensions.dart';
 import '../../../../core/data/repositories.dart';
 import '../../../../core/models/models.dart';
+import '../../../../core/utils/fishtrace_time.dart';
 import '../../../../core/widgets/fishtrace_widgets.dart';
 
 class OfflineSyncScreen extends StatelessWidget {
@@ -71,9 +71,10 @@ class OfflineSyncScreen extends StatelessWidget {
                         Text(
                           controller.lastSuccessfulSync.value == null
                               ? 'No completed sync in this session'
-                              : DateFormat(
+                              : FishTraceTime.format(
+                                  controller.lastSuccessfulSync.value!,
                                   'MMM d, yyyy · hh:mm a',
-                                ).format(controller.lastSuccessfulSync.value!),
+                                ),
                           style: Theme.of(context).textTheme.bodySmall,
                         ),
                       ],
@@ -126,10 +127,9 @@ class OfflineSyncScreen extends StatelessWidget {
               RetryPanel(
                 message: '$failed record${failed == 1 ? '' : 's'} failed.',
                 onRetry: controller.offline.value
-                    ? () => ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Reconnect before retrying.'),
-                        ),
+                    ? () => FishTraceFeedback.warning(
+                        context,
+                        'Reconnect before retrying.',
                       )
                     : controller.retryFailed,
               ),
@@ -269,7 +269,7 @@ class _QueueTile extends StatelessWidget {
             children: [
               Text(item.label, style: Theme.of(context).textTheme.titleSmall),
               Text(
-                DateFormat('MMM d · hh:mm a').format(item.createdAt),
+                FishTraceTime.format(item.createdAt, 'MMM d · hh:mm a'),
                 style: Theme.of(context).textTheme.bodySmall,
               ),
               if (item.lastError != null)

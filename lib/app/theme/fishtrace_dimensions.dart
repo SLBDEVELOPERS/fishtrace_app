@@ -22,7 +22,7 @@ abstract final class FishTraceRadii {
 
 abstract final class FishTraceSizes {
   static const appBar = 56.0;
-  static const bottomNavigation = 70.0;
+  static const bottomNavigation = 82.0;
   static const button = 48.0;
   static const compactButton = 40.0;
   static const touchTarget = 44.0;

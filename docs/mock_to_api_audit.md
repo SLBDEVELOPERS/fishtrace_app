@@ -1,4 +1,4 @@
-# Mock-to-API audit
+# API runtime audit
 
 Updated 2026-08-09.
 
@@ -6,8 +6,8 @@ Updated 2026-08-09.
 
 - `go_router` remains the existing role-protection router; GetX remains the
   only state management and dependency-injection system.
-- `InitialBinding` selects one mock or Laravel implementation for every active
-  repository interface using `DATA_SOURCE_MODE`.
+- `InitialBinding` registers only Laravel implementations for active runtime
+  repository interfaces. Test doubles are not reachable through app configuration.
 - Views do not call Dio or Firebase. Controllers receive backend-neutral
   repositories and expose domain entities plus `AppException` state.
 - The durable Drift sync queue retains endpoint, HTTP method, client record ID,
@@ -15,14 +15,14 @@ Updated 2026-08-09.
 
 ## Active integration coverage
 
-| Area | Mock mode | API mode | Offline / live behavior |
-|---|---|---|---|
-| Auth and common | Mock auth/session/common repositories | Sanctum auth, secure token storage, Firebase custom session | Session restoration and local 401 expiry |
-| Fisher | Mock Fisher repository | Laravel boat/trip/catch/batch repositories | Drift drafts, idempotent sync, attachment upload |
-| Processor | Mock workflow repository | Laravel intake, processing, inspection, and split endpoints | Ordered queued workflow transitions |
-| Transporter | Mock trips/vehicles/devices | Laravel vehicle/trip/device/checklist/delivery endpoints | Delivery photo/signature attachments; RTDB in API mode |
-| Retailer | Mock inventory/sales/alerts | Laravel receipt/inventory/sale/alert endpoints | Endpoint-aware mutation queue |
-| Live sensors | Bounded mock stream | Authorized Firebase `/liveTrips/{tripId}` with Laravel history fallback | Listener and timer disposal in controller lifecycle |
+| Area | Runtime source | Offline / live behavior |
+|---|---|---|
+| Auth and common | Sanctum API and bundled help documentation | Session restoration and local 401 expiry |
+| Fisher | Laravel boat/trip/catch/batch repositories | Typed Drift drafts, idempotent sync, attachment upload |
+| Processor | Laravel intake, processing, inspection, and split endpoints | User-scoped cached directories and ordered queued transitions |
+| Transporter | Laravel vehicle/trip/device/checklist/delivery endpoints | User-scoped cached directories, queued writes, RTDB live data |
+| Retailer | Laravel receipt/inventory/sale/alert/report endpoints | User-scoped cached reads and endpoint-aware mutation queue |
+| Live sensors | Firebase or permanent Laravel telemetry polling | No simulated runtime readings |
 
 ## Confirmed remaining work
 

@@ -98,9 +98,7 @@ class _ProcessingWorkflowScreenState extends State<ProcessingWorkflowScreen> {
     });
     if (mounted) {
       setState(() => _saving = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Processing draft saved offline')),
-      );
+      FishTraceFeedback.warning(context, 'Processing draft saved offline');
     }
   }
 
@@ -240,9 +238,7 @@ class _ProcessingWorkflowScreenState extends State<ProcessingWorkflowScreen> {
   }
 
   void _showError(String message) {
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text(message)));
+    FishTraceFeedback.warning(context, message);
   }
 
   @override
@@ -285,9 +281,12 @@ class _ProcessingWorkflowScreenState extends State<ProcessingWorkflowScreen> {
             return ListView(
               padding: const EdgeInsets.all(FishTraceSpacing.md),
               children: [
-                Text('Batch ID', style: Theme.of(context).textTheme.bodySmall),
                 Text(
-                  _controller.selectedBatch.value?.id ?? 'No batch selected',
+                  'Batch code',
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+                Text(
+                  _controller.selectedBatch.value?.label ?? 'No batch selected',
                   style: Theme.of(context).textTheme.titleMedium,
                 ),
                 const SectionHeader(title: 'Processing Steps'),
@@ -439,7 +438,9 @@ class _ProcessingStepTile extends StatelessWidget {
       ProcessingStep.packaging => 'Seal & label packages',
     };
     return FishTraceCard(
-      borderColor: active ? FishTraceColors.primary : FishTraceColors.border,
+      borderColor: active
+          ? FishTraceColors.primary
+          : Theme.of(context).dividerColor,
       child: Row(
         children: [
           Container(
@@ -449,7 +450,7 @@ class _ProcessingStepTile extends StatelessWidget {
             decoration: BoxDecoration(
               color: complete || active
                   ? FishTraceColors.primary
-                  : FishTraceColors.surfaceMuted,
+                  : Theme.of(context).colorScheme.surfaceContainerHighest,
               shape: BoxShape.circle,
             ),
             child: complete
@@ -459,7 +460,7 @@ class _ProcessingStepTile extends StatelessWidget {
                     style: TextStyle(
                       color: active
                           ? Colors.white
-                          : FishTraceColors.textSecondary,
+                          : Theme.of(context).colorScheme.onSurfaceVariant,
                       fontWeight: FontWeight.w700,
                     ),
                   ),

@@ -89,9 +89,7 @@ class _SplitPackScreenState extends State<SplitPackScreen> {
   Future<void> _generate() async {
     final parent = _controller.selectedBatch.value;
     if (parent == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Select a parent batch first')),
-      );
+      FishTraceFeedback.warning(context, 'Select a parent batch first');
       return;
     }
     if (!_formKey.currentState!.validate()) return;
@@ -100,9 +98,7 @@ class _SplitPackScreenState extends State<SplitPackScreen> {
     final output = _weights.fold(0.0, (total, value) => total + value);
     final validation = _controller.validateOutput(_inputWeight, output);
     if (validation != null) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(validation)));
+      FishTraceFeedback.warning(context, validation);
       return;
     }
     setState(() => _saving = true);
@@ -126,30 +122,25 @@ class _SplitPackScreenState extends State<SplitPackScreen> {
       );
       if (!mounted) return;
       if (queued.status == SyncStatus.failed) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              queued.lastError ?? 'The child batches could not be generated.',
-            ),
-          ),
+        FishTraceFeedback.error(
+          context,
+          queued.lastError ?? 'The child batches could not be generated.',
         );
         return;
       }
       if (queued.status != SyncStatus.synced) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text(
-              'Label generation is queued and will finish when the app is online.',
-            ),
-          ),
+        FishTraceFeedback.warning(
+          context,
+          'Label generation is queued and will finish when the app is online.',
         );
         return;
       }
       await _controller.refreshChildBatches(parent.id);
     } catch (error) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Could not load generated labels: $error')),
+        FishTraceFeedback.error(
+          context,
+          'Could not load generated labels: $error',
         );
       }
     } finally {
@@ -247,10 +238,9 @@ class _SplitPackScreenState extends State<SplitPackScreen> {
                                   ClipboardData(text: child.traceUrl),
                                 );
                                 if (context.mounted) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                      content: Text('Trace link copied'),
-                                    ),
+                                  FishTraceFeedback.success(
+                                    context,
+                                    'Trace link copied',
                                   );
                                 }
                               },
@@ -289,7 +279,7 @@ class _SplitPackScreenState extends State<SplitPackScreen> {
                         style: Theme.of(context).textTheme.bodySmall,
                       ),
                       Text(
-                        _controller.selectedBatch.value?.id ??
+                        _controller.selectedBatch.value?.label ??
                             'No batch selected',
                         style: Theme.of(context).textTheme.titleSmall,
                       ),
@@ -358,7 +348,7 @@ class _SplitPackScreenState extends State<SplitPackScreen> {
                       ListTile(
                         dense: true,
                         title: Text(
-                          '${_controller.selectedBatch.value?.id ?? 'UNASSIGNED'}-${String.fromCharCode(65 + index)}',
+                          '${_controller.selectedBatch.value?.label ?? 'Unassigned'}-${String.fromCharCode(65 + index)}',
                           style: Theme.of(context).textTheme.labelMedium,
                         ),
                         trailing: Text(

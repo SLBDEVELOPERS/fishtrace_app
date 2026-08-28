@@ -130,16 +130,13 @@ class _TransportScanBatchScreenState extends State<TransportScanBatchScreen> {
     final controller = Get.find<TransporterController>();
     final trip = controller.selectedTrip.value;
     if (trip == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Select a transport trip first')),
-      );
+      FishTraceFeedback.warning(context, 'Select a transport trip first');
       return;
     }
     if (trip.status != TripStatus.upcoming) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Batches can only be added before departure.'),
-        ),
+      FishTraceFeedback.warning(
+        context,
+        'Batches can only be added before departure.',
       );
       return;
     }
@@ -150,22 +147,20 @@ class _TransportScanBatchScreenState extends State<TransportScanBatchScreen> {
     );
     if (!mounted) return;
     if (queued.status != SyncStatus.synced) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            queued.status == SyncStatus.failed
-                ? queued.lastError ?? 'The batch could not be added.'
-                : 'Batch assignment is queued. Continue after it syncs.',
-          ),
-        ),
+      FishTraceFeedback.show(
+        context,
+        queued.status == SyncStatus.failed
+            ? queued.lastError ?? 'The batch could not be added.'
+            : 'Batch assignment is queued. Continue after it syncs.',
+        tone: queued.status == SyncStatus.failed
+            ? FishTraceFeedbackTone.error
+            : FishTraceFeedbackTone.warning,
       );
       return;
     }
     await controller.load();
     if (mounted) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Batch added to trip')));
+      FishTraceFeedback.success(context, 'Batch added to trip');
       context.go('/transporter/trip-details');
     }
   }
@@ -223,11 +218,11 @@ class _TransportScanBatchScreenState extends State<TransportScanBatchScreen> {
           ),
           const SizedBox(height: 12),
           FishTraceTextField(
-            label: 'Manual Batch ID',
+            label: 'Batch code or QR value',
             controller: _manual,
-            hint: 'Enter batch ID',
+            hint: 'e.g. FTB-2026-001',
             suffixIcon: IconButton(
-              tooltip: 'Validate batch ID',
+              tooltip: 'Validate batch code',
               onPressed: () => _validate(_manual.text),
               icon: const Icon(Icons.search),
             ),
@@ -241,12 +236,7 @@ class _TransportScanBatchScreenState extends State<TransportScanBatchScreen> {
                     alignment: Alignment.centerRight,
                     child: StatusChip(label: 'Valid'),
                   ),
-                  _DataRow(
-                    label: 'Batch ID',
-                    value: _batch!.batchCode.isEmpty
-                        ? _batch!.id
-                        : _batch!.batchCode,
-                  ),
+                  _DataRow(label: 'Batch code', value: _batch!.label),
                   _DataRow(label: 'Species', value: _batch!.species),
                   _DataRow(
                     label: 'Weight',
@@ -295,7 +285,7 @@ class DeviceAssignmentScreen extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
               child: FishTraceSearchField(
-                hint: 'Search devices or enter ID',
+                hint: 'Search device name or code',
                 onChanged: (value) => controller.search.value = value,
                 onFilter: () => _filter(context, controller),
               ),
@@ -314,9 +304,7 @@ class DeviceAssignmentScreen extends StatelessWidget {
                       onTap: () {
                         final error = controller.selectDevice(device);
                         if (error != null) {
-                          ScaffoldMessenger.of(
-                            context,
-                          ).showSnackBar(SnackBar(content: Text(error)));
+                          FishTraceFeedback.warning(context, error);
                         }
                       },
                       deviceName: device.label,
@@ -337,10 +325,10 @@ class DeviceAssignmentScreen extends StatelessWidget {
             Obx(
               () => Container(
                 padding: const EdgeInsets.fromLTRB(16, 10, 16, 12),
-                decoration: const BoxDecoration(
-                  color: FishTraceColors.surface,
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.surface,
                   border: Border(
-                    top: BorderSide(color: FishTraceColors.border),
+                    top: BorderSide(color: Theme.of(context).dividerColor),
                   ),
                 ),
                 child: Row(
@@ -382,15 +370,15 @@ class DeviceAssignmentScreen extends StatelessWidget {
                                 );
                                 if (!context.mounted) return;
                                 if (queued.status != SyncStatus.synced) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: Text(
-                                        queued.status == SyncStatus.failed
-                                            ? queued.lastError ??
-                                                  'The device could not be assigned.'
-                                            : 'Device assignment is queued. Continue after it syncs.',
-                                      ),
-                                    ),
+                                  FishTraceFeedback.show(
+                                    context,
+                                    queued.status == SyncStatus.failed
+                                        ? queued.lastError ??
+                                              'The device could not be assigned.'
+                                        : 'Device assignment is queued. Continue after it syncs.',
+                                    tone: queued.status == SyncStatus.failed
+                                        ? FishTraceFeedbackTone.error
+                                        : FishTraceFeedbackTone.warning,
                                   );
                                   return;
                                 }
@@ -412,12 +400,9 @@ class DeviceAssignmentScreen extends StatelessWidget {
                                   context.go('/transporter/checklist');
                                   return;
                                 }
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text(
-                                      'The device was assigned, but Firebase synchronization did not complete. Check the device provisioning or Firebase connection and try again.',
-                                    ),
-                                  ),
+                                FishTraceFeedback.warning(
+                                  context,
+                                  'The device was assigned, but Firebase synchronization did not complete. Check the device provisioning or Firebase connection and try again.',
                                 );
                               },
                       ),
@@ -627,15 +612,14 @@ class VehicleManagementScreen extends StatelessWidget {
                       });
                   if (!sheetContext.mounted) return;
                   if (queued.status != SyncStatus.synced) {
-                    ScaffoldMessenger.of(sheetContext).showSnackBar(
-                      SnackBar(
-                        content: Text(
-                          queued.status == SyncStatus.failed
-                              ? queued.lastError ??
-                                    'Vehicle could not be saved.'
-                              : 'Vehicle change is queued and not applied yet.',
-                        ),
-                      ),
+                    FishTraceFeedback.show(
+                      sheetContext,
+                      queued.status == SyncStatus.failed
+                          ? queued.lastError ?? 'Vehicle could not be saved.'
+                          : 'Vehicle change is queued and not applied yet.',
+                      tone: queued.status == SyncStatus.failed
+                          ? FishTraceFeedbackTone.error
+                          : FishTraceFeedbackTone.warning,
                     );
                     return;
                   }

@@ -5,13 +5,16 @@ import 'package:go_router/go_router.dart';
 import '../../../../app/theme/fishtrace_colors.dart';
 import '../../../../app/theme/fishtrace_dimensions.dart';
 import '../../../../core/models/models.dart';
+import '../../../../core/utils/display_identifier.dart';
 import '../../../../core/widgets/fishtrace_widgets.dart';
 import '../../../common/presentation/widgets/role_bottom_bar.dart';
 import '../../domain/entities/fisher_entities.dart';
 import '../controllers/fisher_controller.dart';
 
 class CreateBatchScreen extends StatefulWidget {
-  const CreateBatchScreen({super.key});
+  const CreateBatchScreen({super.key, this.now = DateTime.now});
+
+  final DateTime Function() now;
 
   @override
   State<CreateBatchScreen> createState() => _CreateBatchScreenState();
@@ -126,7 +129,8 @@ class _CreateBatchScreenState extends State<CreateBatchScreen> {
       grade: _grade,
       status: BatchStatus.completed,
       tripId: tripIds.single,
-      createdAt: DateTime.now(),
+      tripCode: _selectedCatches.first.tripCode,
+      createdAt: widget.now(),
     );
     await _controller.queueOperation('Create batch', 'batch', {
       'localId': _batchId,
@@ -192,11 +196,14 @@ class _CreateBatchScreenState extends State<CreateBatchScreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'Batch ID (Auto)',
+                              'Draft batch reference',
                               style: Theme.of(context).textTheme.bodySmall,
                             ),
                             Text(
-                              _batchId,
+                              DisplayIdentifier.resolve(
+                                id: _batchId,
+                                noun: 'Batch',
+                              ),
                               style: Theme.of(context).textTheme.titleSmall,
                             ),
                           ],
@@ -226,9 +233,11 @@ class _CreateBatchScreenState extends State<CreateBatchScreen> {
                         contentPadding: const EdgeInsets.symmetric(
                           horizontal: 10,
                         ),
-                        tileColor: FishTraceColors.surface,
+                        tileColor: Theme.of(context).colorScheme.surface,
                         shape: RoundedRectangleBorder(
-                          side: const BorderSide(color: FishTraceColors.border),
+                          side: BorderSide(
+                            color: Theme.of(context).dividerColor,
+                          ),
                           borderRadius: BorderRadius.circular(
                             FishTraceRadii.card,
                           ),
@@ -239,7 +248,7 @@ class _CreateBatchScreenState extends State<CreateBatchScreen> {
                         ),
                         subtitle: Text(
                           '${catchRecord.availableWeightKg.toStringAsFixed(1)} kg available · '
-                          '${catchRecord.quantity} fish · Trip ${catchRecord.tripId}',
+                          '${catchRecord.quantity} fish · ${catchRecord.tripLabel}',
                         ),
                         onChanged: _isCompatible(catchRecord)
                             ? (selected) => setState(() {
@@ -262,7 +271,7 @@ class _CreateBatchScreenState extends State<CreateBatchScreen> {
                       Container(
                         width: 1,
                         height: 46,
-                        color: FishTraceColors.divider,
+                        color: Theme.of(context).dividerColor,
                       ),
                       Expanded(
                         child: _Metric(
@@ -273,7 +282,7 @@ class _CreateBatchScreenState extends State<CreateBatchScreen> {
                       Container(
                         width: 1,
                         height: 46,
-                        color: FishTraceColors.divider,
+                        color: Theme.of(context).dividerColor,
                       ),
                       Expanded(
                         child: _Metric(
@@ -376,8 +385,7 @@ class _CreateBatchScreenState extends State<CreateBatchScreen> {
           ),
   );
 
-  void _message(String text) =>
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(text)));
+  void _message(String text) => FishTraceFeedback.warning(context, text);
 }
 
 class _Metric extends StatelessWidget {

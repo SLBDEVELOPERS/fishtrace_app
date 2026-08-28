@@ -1,4 +1,5 @@
 import '../../../../core/models/models.dart';
+import '../../../../core/utils/display_identifier.dart';
 
 class FisherSpeciesReference {
   const FisherSpeciesReference({
@@ -83,6 +84,8 @@ class FisherCatch {
     required this.verified,
     this.photoPaths = const [],
     this.linkedBatchId,
+    this.linkedBatchCode = '',
+    this.tripCode = '',
     this.allocatedWeightKg = 0,
   });
 
@@ -100,9 +103,22 @@ class FisherCatch {
   final bool verified;
   final List<String> photoPaths;
   final String? linkedBatchId;
+  final String linkedBatchCode;
+  final String tripCode;
   final double allocatedWeightKg;
   double get availableWeightKg =>
       (weightKg - allocatedWeightKg).clamp(0, weightKg).toDouble();
+
+  String get reference => DisplayIdentifier.resolve(id: id, noun: 'Catch');
+  String get tripLabel =>
+      DisplayIdentifier.resolve(id: tripId, code: tripCode, noun: 'Trip');
+  String? get linkedBatchLabel => linkedBatchId == null
+      ? null
+      : DisplayIdentifier.resolve(
+          id: linkedBatchId!,
+          code: linkedBatchCode,
+          noun: 'Batch',
+        );
 }
 
 class FisherBatchSummary {
@@ -115,6 +131,7 @@ class FisherBatchSummary {
     required this.grade,
     required this.status,
     required this.tripId,
+    this.tripCode = '',
     required this.createdAt,
   });
 
@@ -126,9 +143,13 @@ class FisherBatchSummary {
   final QualityGrade grade;
   final BatchStatus status;
   final String tripId;
+  final String tripCode;
   final DateTime createdAt;
 
-  String get label => batchCode.isNotEmpty ? batchCode : id;
+  String get label =>
+      DisplayIdentifier.resolve(id: id, code: batchCode, noun: 'Batch');
+  String get tripLabel =>
+      DisplayIdentifier.resolve(id: tripId, code: tripCode, noun: 'Trip');
 }
 
 class FisherBatchDetails {
@@ -196,7 +217,8 @@ class ActiveFishingTrip {
   final double? latitude;
   final double? longitude;
 
-  String get label => tripCode.isNotEmpty ? tripCode : id;
+  String get label =>
+      DisplayIdentifier.resolve(id: id, code: tripCode, noun: 'Trip');
 }
 
 class MarineWeather {

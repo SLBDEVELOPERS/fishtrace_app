@@ -4,6 +4,27 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
+  testWidgets('status chips expose readable text and status semantics', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: buildFishTraceTheme(),
+        home: const Scaffold(body: StatusChip(label: 'Warning')),
+      ),
+    );
+
+    final semantics = tester.widget<Semantics>(
+      find.descendant(
+        of: find.byType(StatusChip),
+        matching: find.byType(Semantics),
+      ),
+    );
+    expect(semantics.properties.label, 'Status: Warning');
+    final text = tester.widget<Text>(find.text('Warning'));
+    expect(text.style?.fontSize, greaterThanOrEqualTo(12));
+  });
+
   testWidgets('required domain components render at 390x844', (tester) async {
     tester.view.devicePixelRatio = 1;
     tester.view.physicalSize = const Size(390, 844);
@@ -142,5 +163,28 @@ void main() {
     expect(find.byType(ErrorState), findsOneWidget);
     expect(find.byType(RetryPanel), findsOneWidget);
     expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('temperature chart axes fit decimal readings', (tester) async {
+    tester.view.devicePixelRatio = 1;
+    tester.view.physicalSize = const Size(320, 568);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    addTearDown(tester.view.resetPhysicalSize);
+
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: buildFishTraceTheme(),
+        home: const Scaffold(
+          body: ChartCard(
+            title: 'Product temperature',
+            values: [2.0, 2.15, 2.05, 2.2],
+            unit: '°C',
+          ),
+        ),
+      ),
+    );
+
+    expect(tester.takeException(), isNull);
+    expect(find.text('2.2°C'), findsOneWidget);
   });
 }

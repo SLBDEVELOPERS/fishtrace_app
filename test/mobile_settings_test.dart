@@ -30,7 +30,7 @@ void main() {
     expect(restored.language, MobileLanguage.tamil);
     expect(restored.temperatureAlerts, isFalse);
     expect(restored.workflowUpdates, isFalse);
-    expect(restored.systemMessages, isTrue);
+    expect(restored.systemMessages, isFalse);
   });
 
   test('invalid stored settings safely restore canonical defaults', () async {
@@ -43,6 +43,25 @@ void main() {
 
     expect(restored.measurementSystem, MeasurementSystem.metric);
     expect(restored.language, MobileLanguage.english);
-    expect(restored.temperatureAlerts, isTrue);
+    expect(restored.temperatureAlerts, isFalse);
+  });
+
+  test('runtime exposes only the supported English metric contract', () async {
+    const repository = SecureMobileSettingsRepository(FlutterSecureStorage());
+    await repository.save(
+      const MobileSettings(
+        measurementSystem: MeasurementSystem.imperial,
+        language: MobileLanguage.tamil,
+      ),
+    );
+    final controller = MobileSettingsController(repository);
+
+    await controller.load();
+
+    expect(
+      controller.settings.value.measurementSystem,
+      MeasurementSystem.metric,
+    );
+    expect(controller.settings.value.language, MobileLanguage.english);
   });
 }

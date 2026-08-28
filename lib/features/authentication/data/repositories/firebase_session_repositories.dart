@@ -19,6 +19,24 @@ class MockFirebaseSessionRepository implements FirebaseSessionRepository {
   Future<void> signOut() async => _authenticated = false;
 }
 
+/// Used when Firebase live telemetry is intentionally disabled for a build.
+/// It never fabricates an authenticated Firebase user or any telemetry data.
+class DisabledFirebaseSessionRepository implements FirebaseSessionRepository {
+  const DisabledFirebaseSessionRepository();
+
+  @override
+  bool get isAuthenticated => false;
+
+  @override
+  Future<void> initialize() async {}
+
+  @override
+  Future<void> createSession() async {}
+
+  @override
+  Future<void> signOut() async {}
+}
+
 class ApiFirebaseSessionRepository implements FirebaseSessionRepository {
   ApiFirebaseSessionRepository(this._api, {FirebaseAuth? auth})
     : _providedAuth = auth;

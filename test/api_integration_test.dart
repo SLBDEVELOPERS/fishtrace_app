@@ -19,7 +19,6 @@ import 'package:fishtrace/features/authentication/data/repositories/firebase_ses
 import 'package:fishtrace/features/common/data/repositories/dio_common_repository.dart';
 import 'package:fishtrace/features/common/data/dtos/notification_dto.dart';
 import 'package:fishtrace/features/common/data/repositories/file_repositories.dart';
-import 'package:fishtrace/features/common/data/repositories/mock_common_repository.dart';
 import 'package:fishtrace/features/common/data/repositories/profile_repositories.dart';
 import 'package:fishtrace/features/common/domain/repositories/common_repository.dart';
 import 'package:fishtrace/features/fisher/data/dtos/fisher_dtos.dart';
@@ -41,11 +40,28 @@ void main() {
   });
   tearDown(Get.reset);
 
-  test('API mode enables Firebase live monitoring by default', () {
+  test('configuration is API-only and enables Firebase by default', () {
     final config = AppConfig.fromDefines();
 
-    expect(config.dataSourceMode, AppDataSourceMode.api);
+    expect(config.apiBaseUrl, startsWith('https://'));
     expect(config.firebaseEnabled, isTrue);
+  });
+
+  test('configuration rejects mock mode and insecure release URLs', () {
+    expect(
+      () => AppConfig.fromValues(
+        dataSourceMode: 'mock',
+        apiBaseUrl: 'https://example.test/api/v1',
+      ),
+      throwsStateError,
+    );
+    expect(
+      () => AppConfig.fromValues(
+        apiBaseUrl: 'http://example.test/api/v1',
+        releaseMode: true,
+      ),
+      throwsStateError,
+    );
   });
 
   test('Firebase session accepts the canonical Laravel token field', () {
@@ -57,33 +73,12 @@ void main() {
     );
   });
 
-  test('CommonBinding selects exactly one repository for each mode', () {
+  test('CommonBinding always registers the Laravel repository', () {
     final api = ApiClient(
       Dio()..httpClientAdapter = _JsonAdapter({}),
       const ErrorMapper(),
     );
-    CommonBinding(
-      const AppConfig(
-        dataSourceMode: AppDataSourceMode.mock,
-        apiBaseUrl: 'https://example.test/api/v1',
-        firebaseEnabled: false,
-      ),
-      api,
-    ).dependencies();
-    final mock = Get.find<CommonRepository>();
-    expect(mock, isA<MockCommonRepository>());
-    expect(Get.find<NotificationRepository>(), same(mock));
-    expect(Get.find<SupportRepository>(), same(mock));
-    Get.reset();
-
-    CommonBinding(
-      const AppConfig(
-        dataSourceMode: AppDataSourceMode.api,
-        apiBaseUrl: 'https://example.test/api/v1',
-        firebaseEnabled: true,
-      ),
-      api,
-    ).dependencies();
+    CommonBinding(api).dependencies();
     final apiRepository = Get.find<CommonRepository>();
     expect(apiRepository, isA<DioCommonRepository>());
     expect(Get.find<NotificationRepository>(), same(apiRepository));

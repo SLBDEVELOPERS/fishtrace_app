@@ -7,6 +7,7 @@ import '../../../../app/theme/fishtrace_colors.dart';
 import '../../../../app/theme/fishtrace_dimensions.dart';
 import '../../../../core/data/repositories.dart';
 import '../../../../core/models/models.dart';
+import '../../../../core/notifications/notification_service.dart';
 import '../../../../core/widgets/fishtrace_widgets.dart';
 import '../../domain/entities/mobile_settings.dart';
 import '../../domain/repositories/profile_repository.dart';
@@ -49,40 +50,20 @@ class ProfileScreen extends StatelessWidget {
                 bottom: false,
                 child: Column(
                   children: [
-                    Stack(
-                      clipBehavior: Clip.none,
-                      children: [
-                        CircleAvatar(
-                          radius: 37,
-                          backgroundColor: Colors.white,
-                          child: Text(
-                            user.name
-                                .split(' ')
-                                .take(2)
-                                .map((word) => word[0])
-                                .join(),
-                            style: Theme.of(context).textTheme.titleLarge
-                                ?.copyWith(color: FishTraceColors.primary),
-                          ),
+                    CircleAvatar(
+                      radius: 37,
+                      backgroundColor: Colors.white,
+                      child: Text(
+                        user.name
+                            .split(' ')
+                            .where((word) => word.isNotEmpty)
+                            .take(2)
+                            .map((word) => word[0])
+                            .join(),
+                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                          color: FishTraceColors.primary,
                         ),
-                        Positioned(
-                          right: -3,
-                          bottom: -2,
-                          child: Container(
-                            width: 25,
-                            height: 25,
-                            decoration: BoxDecoration(
-                              color: Theme.of(context).colorScheme.surface,
-                              shape: BoxShape.circle,
-                            ),
-                            child: const Icon(
-                              Icons.camera_alt_outlined,
-                              size: 15,
-                              color: FishTraceColors.primary,
-                            ),
-                          ),
-                        ),
-                      ],
+                      ),
                     ),
                     const SizedBox(height: FishTraceSpacing.sm),
                     Text(
@@ -143,18 +124,11 @@ class ProfileScreen extends StatelessWidget {
                     trailing: settings.themeLabel,
                     onTap: () => _showPreferences(context, settingsController),
                   ),
-                  _SettingsTile(
-                    icon: Icons.straighten,
-                    title: 'Units & Measurements',
-                    trailing: settings.measurementLabel,
-                    onTap: () =>
-                        _showMeasurementSystems(context, settingsController),
-                  ),
-                  _SettingsTile(
-                    icon: Icons.language,
-                    title: 'Language',
-                    trailing: settings.languageLabel,
-                    onTap: () => _showLanguages(context, settingsController),
+                  const ListTile(
+                    minTileHeight: 48,
+                    leading: Icon(Icons.language, size: 20),
+                    title: Text('Language & units'),
+                    subtitle: Text('English · Metric (kg, km, °C)'),
                   ),
                   _SettingsTile(
                     icon: Icons.notifications_outlined,
@@ -175,7 +149,7 @@ class ProfileScreen extends StatelessWidget {
                     onTap: () => _showInformation(
                       context,
                       'About FishTrace',
-                      'FishTrace 1.0.0\nTrace Every Fish. Trust Every Step.',
+                      'FishTrace\nTrace Every Fish. Trust Every Step.',
                     ),
                   ),
                   const Divider(height: 18),
@@ -226,8 +200,9 @@ class ProfileScreen extends StatelessWidget {
               session.user.value = updated;
               if (dialogContext.mounted) Navigator.pop(dialogContext);
               if (context.mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Personal information saved')),
+                FishTraceFeedback.success(
+                  context,
+                  'Personal information saved',
                 );
               }
             },
@@ -338,77 +313,6 @@ class ProfileScreen extends StatelessWidget {
     ),
   );
 
-  Future<void> _showMeasurementSystems(
-    BuildContext context,
-    MobileSettingsController controller,
-  ) => _showSingleChoice<MeasurementSystem>(
-    context: context,
-    title: 'Units & Measurements',
-    values: MeasurementSystem.values,
-    selected: () => controller.settings.value.measurementSystem,
-    label: (value) => switch (value) {
-      MeasurementSystem.metric => 'Metric (kg, km)',
-      MeasurementSystem.imperial => 'Imperial (lb, mi)',
-    },
-    onSelected: (value) => controller.save(
-      controller.settings.value.copyWith(measurementSystem: value),
-    ),
-  );
-
-  Future<void> _showLanguages(
-    BuildContext context,
-    MobileSettingsController controller,
-  ) => _showSingleChoice<MobileLanguage>(
-    context: context,
-    title: 'Language',
-    values: MobileLanguage.values,
-    selected: () => controller.settings.value.language,
-    label: (value) => switch (value) {
-      MobileLanguage.english => 'English',
-      MobileLanguage.sinhala => 'සිංහල',
-      MobileLanguage.tamil => 'தமிழ்',
-    },
-    onSelected: (value) =>
-        controller.save(controller.settings.value.copyWith(language: value)),
-  );
-
-  Future<void> _showSingleChoice<T>({
-    required BuildContext context,
-    required String title,
-    required List<T> values,
-    required T Function() selected,
-    required String Function(T value) label,
-    required Future<void> Function(T value) onSelected,
-  }) => showModalBottomSheet<void>(
-    context: context,
-    showDragHandle: true,
-    builder: (sheetContext) => SafeArea(
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(16, 0, 16, 18),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(title, style: Theme.of(context).textTheme.titleMedium),
-            const SizedBox(height: 8),
-            for (final value in values)
-              ListTile(
-                contentPadding: EdgeInsets.zero,
-                title: Text(label(value)),
-                trailing: value == selected()
-                    ? const Icon(Icons.check, color: FishTraceColors.primary)
-                    : null,
-                onTap: () async {
-                  await onSelected(value);
-                  if (sheetContext.mounted) Navigator.pop(sheetContext);
-                },
-              ),
-          ],
-        ),
-      ),
-    ),
-  );
-
   Future<void> _showNotificationSettings(
     BuildContext context,
     MobileSettingsController controller,
@@ -428,27 +332,43 @@ class ProfileScreen extends StatelessWidget {
                 'Notification Settings',
                 style: Theme.of(context).textTheme.titleMedium,
               ),
+              const SizedBox(height: 4),
+              Text(
+                'System permission is requested when you enable an alert type.',
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
               SwitchListTile(
                 contentPadding: EdgeInsets.zero,
                 title: const Text('Temperature alerts'),
                 value: settings.temperatureAlerts,
-                onChanged: (value) => controller.save(
+                onChanged: (value) => _saveNotificationSetting(
+                  context,
+                  controller,
                   settings.copyWith(temperatureAlerts: value),
+                  enabling: value,
                 ),
               ),
               SwitchListTile(
                 contentPadding: EdgeInsets.zero,
                 title: const Text('Workflow updates'),
                 value: settings.workflowUpdates,
-                onChanged: (value) =>
-                    controller.save(settings.copyWith(workflowUpdates: value)),
+                onChanged: (value) => _saveNotificationSetting(
+                  context,
+                  controller,
+                  settings.copyWith(workflowUpdates: value),
+                  enabling: value,
+                ),
               ),
               SwitchListTile(
                 contentPadding: EdgeInsets.zero,
                 title: const Text('System messages'),
                 value: settings.systemMessages,
-                onChanged: (value) =>
-                    controller.save(settings.copyWith(systemMessages: value)),
+                onChanged: (value) => _saveNotificationSetting(
+                  context,
+                  controller,
+                  settings.copyWith(systemMessages: value),
+                  enabling: value,
+                ),
               ),
             ],
           );
@@ -456,6 +376,37 @@ class ProfileScreen extends StatelessWidget {
       ),
     ),
   );
+
+  Future<void> _saveNotificationSetting(
+    BuildContext context,
+    MobileSettingsController controller,
+    MobileSettings next, {
+    required bool enabling,
+  }) async {
+    try {
+      if (enabling) {
+        final granted = await Get.find<NotificationService>()
+            .requestPermission();
+        if (!granted) {
+          if (context.mounted) {
+            FishTraceFeedback.warning(
+              context,
+              'Notifications are disabled in system settings. Permission was not granted.',
+            );
+          }
+          return;
+        }
+      }
+      await controller.save(next);
+    } catch (_) {
+      if (context.mounted) {
+        FishTraceFeedback.error(
+          context,
+          'Could not update notification permission.',
+        );
+      }
+    }
+  }
 
   Future<void> _confirmLogout(
     BuildContext context,
@@ -484,8 +435,8 @@ class ProfileScreen extends StatelessWidget {
       ),
     );
     if (confirmed == true && context.mounted) {
-      session.signOut();
-      context.go(AppRoute.login);
+      await session.signOut();
+      if (context.mounted) context.go(AppRoute.login);
     }
   }
 }

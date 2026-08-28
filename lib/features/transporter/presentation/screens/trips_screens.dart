@@ -225,7 +225,7 @@ class TripDetailsScreen extends StatelessWidget {
                                     (vehicle) => vehicle.id == trip.vehicleId,
                                   )
                                   ?.label ??
-                              trip.vehicleId,
+                              'Assigned vehicle',
                           style: Theme.of(context).textTheme.titleSmall,
                         ),
                         Text(
@@ -259,9 +259,7 @@ class TripDetailsScreen extends StatelessWidget {
                       children: [
                         Expanded(
                           child: Text(
-                            batch.batchCode.isNotEmpty
-                                ? batch.batchCode
-                                : batch.id,
+                            batch.label,
                             style: Theme.of(context).textTheme.labelMedium,
                           ),
                         ),
@@ -388,14 +386,16 @@ Future<void> _removeBatch(
   final result = await controller.removeBatch(batch);
   if (result.status == SyncStatus.synced) await controller.load();
   if (context.mounted) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          result.status == SyncStatus.synced
-              ? 'Batch removed'
-              : result.lastError ?? 'Batch removal is queued.',
-        ),
-      ),
+    FishTraceFeedback.show(
+      context,
+      result.status == SyncStatus.synced
+          ? 'Batch removed'
+          : result.lastError ?? 'Batch removal is queued.',
+      tone: switch (result.status) {
+        SyncStatus.synced => FishTraceFeedbackTone.success,
+        SyncStatus.failed => FishTraceFeedbackTone.error,
+        _ => FishTraceFeedbackTone.warning,
+      },
     );
   }
 }

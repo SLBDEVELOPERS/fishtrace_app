@@ -3,7 +3,10 @@ import 'package:flutter/material.dart';
 import 'fishtrace_colors.dart';
 import 'fishtrace_dimensions.dart';
 
-ThemeData buildFishTraceTheme({Brightness brightness = Brightness.light}) {
+ThemeData buildFishTraceTheme({
+  Brightness brightness = Brightness.light,
+  String? fontFamily,
+}) {
   final dark = brightness == Brightness.dark;
   final textPrimary = dark
       ? const Color(0xFFEAF4F6)
@@ -18,32 +21,37 @@ ThemeData buildFishTraceTheme({Brightness brightness = Brightness.light}) {
   final textTheme = TextTheme(
     displaySmall: TextStyle(
       fontSize: 29,
-      height: 1.12,
+      height: 1.1,
       fontWeight: FontWeight.w800,
+      letterSpacing: -0.7,
       color: textPrimary,
     ),
     headlineMedium: TextStyle(
       fontSize: 23,
       height: 1.18,
       fontWeight: FontWeight.w800,
+      letterSpacing: -0.45,
       color: textPrimary,
     ),
     titleLarge: TextStyle(
       fontSize: 18,
       height: 1.25,
       fontWeight: FontWeight.w700,
+      letterSpacing: -0.2,
       color: textPrimary,
     ),
     titleMedium: TextStyle(
       fontSize: 16,
       height: 1.3,
       fontWeight: FontWeight.w700,
+      letterSpacing: -0.1,
       color: textPrimary,
     ),
     titleSmall: TextStyle(
       fontSize: 14,
       height: 1.3,
       fontWeight: FontWeight.w700,
+      letterSpacing: .05,
       color: textPrimary,
     ),
     bodyLarge: TextStyle(
@@ -76,6 +84,10 @@ ThemeData buildFishTraceTheme({Brightness brightness = Brightness.light}) {
     ),
   );
 
+  final effectiveTextTheme = fontFamily == null
+      ? textTheme
+      : textTheme.apply(fontFamily: fontFamily);
+
   final colorScheme = ColorScheme.fromSeed(
     seedColor: FishTraceColors.primary,
     brightness: brightness,
@@ -94,9 +106,9 @@ ThemeData buildFishTraceTheme({Brightness brightness = Brightness.light}) {
     useMaterial3: true,
     colorScheme: colorScheme,
     scaffoldBackgroundColor: page,
-    fontFamily: 'Roboto',
-    textTheme: textTheme,
-    primaryTextTheme: textTheme,
+    fontFamily: fontFamily,
+    textTheme: effectiveTextTheme,
+    primaryTextTheme: effectiveTextTheme,
     appBarTheme: AppBarTheme(
       elevation: 0,
       scrolledUnderElevation: 0,
@@ -113,10 +125,11 @@ ThemeData buildFishTraceTheme({Brightness brightness = Brightness.light}) {
     dividerTheme: DividerThemeData(color: divider, thickness: 1, space: 1),
     cardTheme: CardThemeData(
       color: surface,
-      elevation: 0,
+      elevation: dark ? 0 : .5,
+      shadowColor: FishTraceColors.navy.withValues(alpha: .10),
       margin: EdgeInsets.zero,
       shape: RoundedRectangleBorder(
-        side: BorderSide(color: border),
+        side: BorderSide(color: border.withValues(alpha: dark ? .9 : .72)),
         borderRadius: BorderRadius.circular(FishTraceRadii.card),
       ),
     ),
@@ -153,7 +166,7 @@ ThemeData buildFishTraceTheme({Brightness brightness = Brightness.light}) {
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(FishTraceRadii.control),
         ),
-        textStyle: textTheme.labelLarge,
+        textStyle: effectiveTextTheme.labelLarge,
       ),
     ),
     outlinedButtonTheme: OutlinedButtonThemeData(
@@ -164,7 +177,7 @@ ThemeData buildFishTraceTheme({Brightness brightness = Brightness.light}) {
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(FishTraceRadii.control),
         ),
-        textStyle: textTheme.labelLarge,
+        textStyle: effectiveTextTheme.labelLarge,
       ),
     ),
     textButtonTheme: TextButtonThemeData(
@@ -174,13 +187,17 @@ ThemeData buildFishTraceTheme({Brightness brightness = Brightness.light}) {
           FishTraceSizes.touchTarget,
           FishTraceSizes.touchTarget,
         ),
-        textStyle: textTheme.labelMedium,
+        textStyle: effectiveTextTheme.labelMedium,
       ),
     ),
-    snackBarTheme: const SnackBarThemeData(
+    snackBarTheme: SnackBarThemeData(
       behavior: SnackBarBehavior.floating,
       backgroundColor: FishTraceColors.navy,
-      contentTextStyle: TextStyle(color: Colors.white),
+      elevation: 8,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(FishTraceRadii.card),
+      ),
+      contentTextStyle: const TextStyle(color: Colors.white),
     ),
   );
 }

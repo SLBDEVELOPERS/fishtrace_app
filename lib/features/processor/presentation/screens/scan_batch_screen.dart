@@ -199,14 +199,14 @@ class _ScanBatchScreenState extends State<ScanBatchScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Enter Batch ID',
+                  'Enter batch code',
                   style: Theme.of(context).textTheme.titleSmall,
                 ),
                 const SizedBox(height: 12),
                 FishTraceTextField(
-                  label: 'Batch ID',
+                  label: 'Batch code or QR value',
                   controller: _manual,
-                  hint: 'Enter batch ID',
+                  hint: 'e.g. FTB-2026-001',
                   required: true,
                 ),
                 const SizedBox(height: 14),

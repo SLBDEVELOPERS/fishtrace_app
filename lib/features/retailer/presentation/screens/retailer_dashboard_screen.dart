@@ -61,7 +61,7 @@ class RetailerDashboardScreen extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Good morning, $userName 👋',
+                            'Good morning, $userName',
                             style: Theme.of(context).textTheme.titleMedium
                                 ?.copyWith(color: Colors.white),
                           ),
@@ -98,7 +98,9 @@ class RetailerDashboardScreen extends StatelessWidget {
                     onAction: () => context.go('/retailer/reports'),
                   ),
                   SizedBox(
-                    height: 100,
+                    height: MediaQuery.textScalerOf(context).scale(1) >= 1.5
+                        ? 140
+                        : 100,
                     child: Row(
                       children: [
                         Expanded(
@@ -143,7 +145,7 @@ class RetailerDashboardScreen extends StatelessWidget {
                         Container(
                           width: 1,
                           height: 46,
-                          color: FishTraceColors.divider,
+                          color: Theme.of(context).dividerColor,
                         ),
                         Expanded(
                           child: _ActivityMetric(
@@ -160,7 +162,7 @@ class RetailerDashboardScreen extends StatelessWidget {
                         Container(
                           width: 1,
                           height: 46,
-                          color: FishTraceColors.divider,
+                          color: Theme.of(context).dividerColor,
                         ),
                         Expanded(
                           child: _ActivityMetric(

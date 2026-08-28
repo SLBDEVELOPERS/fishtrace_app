@@ -8,37 +8,30 @@ shown in the supplied design boards.
 
 ```bash
 flutter pub get
-flutter run --dart-define=DATA_SOURCE_MODE=mock
+flutter run --dart-define=API_BASE_URL=http://192.168.1.120:8002/api/v1 \
+  --dart-define=FIREBASE_ENABLED=true
 flutter analyze
 flutter test
 ```
 
-Mock-mode demo accounts use `FishTrace@2026`:
+The local Laravel development accounts use `FishTrace@2026`:
 
 - `fisher@fishtrace.demo`
 - `processor@fishtrace.demo`
 - `transporter@fishtrace.demo`
 - `retailer@fishtrace.demo`
 
-Mock mode is default. API mode can be started with:
-
-```bash
-flutter run --dart-define=DATA_SOURCE_MODE=api \
-  --dart-define=API_BASE_URL=http://192.168.1.120:8002/api/v1 \
-  --dart-define=FIREBASE_ENABLED=true
-```
-
-The local Laravel development accounts use the backend-documented password
-`FishTrace@2026`. Enable Firebase only after adding the platform configuration
+FishTrace is API-only. `DATA_SOURCE_MODE=mock` and other non-API modes are
+rejected at startup. Enable Firebase only after adding the platform configuration
 and configuring the backend service account. Production API URLs must use HTTPS.
 
-Every feature controller resolves a mock repository in mock mode and a Dio repository
-in API mode. Offline Fisher domain data and mutations are persisted in typed
-Drift/SQLite tables and replayed with original timestamps, controlled backoff and
-idempotency keys. API access/refresh tokens are stored securely; live sensors use REST
+All runtime repositories use the Laravel API. Successful Processor, Transporter,
+and Retailer directory responses are cached per authenticated user, while mutations
+from every role use the durable Drift/SQLite queue with controlled backoff and
+idempotency keys. API tokens are stored securely; live sensors use REST
 for latest/history and authorized Firebase Realtime Database `/liveTrips/{tripId}`
-streams for updates. API mode requires platform Firebase configuration supplied by the
-deployment environment.
+streams for updates. When Firebase is disabled, live monitoring polls permanent
+Laravel telemetry without generating simulated readings.
 Endpoint expectations are in
 [`docs/api_contract.md`](docs/api_contract.md). The scanner intentionally includes a
 manual/simulated route so it works on desktop and without camera permission.

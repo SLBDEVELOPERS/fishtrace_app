@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:go_router/go_router.dart';
 
@@ -44,7 +45,7 @@ class _RecoveryScreenState extends State<RecoveryScreen> {
 
   @override
   Widget build(BuildContext context) => FishTraceScaffold(
-    backgroundColor: FishTraceColors.surface,
+    backgroundColor: Theme.of(context).colorScheme.surface,
     appBar: FishTraceAppBar(
       title: 'Password Recovery',
       leading: IconButton(
@@ -100,6 +101,8 @@ class _RecoveryScreenState extends State<RecoveryScreen> {
           hint: 'Enter email or phone number',
           required: true,
           keyboardType: TextInputType.emailAddress,
+          textInputAction: TextInputAction.done,
+          autofillHints: const [AutofillHints.username, AutofillHints.email],
           validator: (value) => (value?.trim().isEmpty ?? true)
               ? 'Email or phone is required'
               : null,
@@ -140,6 +143,12 @@ class _RecoveryScreenState extends State<RecoveryScreen> {
           controller: _otp,
           hint: '000000',
           keyboardType: TextInputType.number,
+          textInputAction: TextInputAction.done,
+          autofillHints: const [AutofillHints.oneTimeCode],
+          inputFormatters: [
+            FilteringTextInputFormatter.digitsOnly,
+            LengthLimitingTextInputFormatter(6),
+          ],
           required: true,
           validator: (value) => RegExp(r'^\d{6}$').hasMatch(value ?? '')
               ? null
@@ -195,6 +204,10 @@ class _RecoveryScreenState extends State<RecoveryScreen> {
           hint: 'Enter new password',
           required: true,
           obscureText: _obscurePassword,
+          textInputAction: TextInputAction.next,
+          autofillHints: const [AutofillHints.newPassword],
+          enableSuggestions: false,
+          autocorrect: false,
           validator: (value) =>
               (value?.length ?? 0) < 8 ? 'Use at least eight characters' : null,
           suffixIcon: IconButton(
@@ -216,6 +229,10 @@ class _RecoveryScreenState extends State<RecoveryScreen> {
           hint: 'Re-enter new password',
           required: true,
           obscureText: _obscurePassword,
+          textInputAction: TextInputAction.done,
+          autofillHints: const [AutofillHints.newPassword],
+          enableSuggestions: false,
+          autocorrect: false,
           validator: (value) =>
               value != _password.text ? 'Passwords do not match' : null,
         ),
@@ -259,7 +276,7 @@ class _RecoveryProgress extends StatelessWidget {
                         child: Divider(
                           color: index <= step
                               ? FishTraceColors.primary
-                              : FishTraceColors.border,
+                              : Theme.of(context).dividerColor,
                         ),
                       ),
                     AnimatedContainer(
@@ -270,7 +287,7 @@ class _RecoveryProgress extends StatelessWidget {
                       decoration: BoxDecoration(
                         color: index <= step
                             ? FishTraceColors.primary
-                            : FishTraceColors.surface,
+                            : Theme.of(context).colorScheme.surface,
                         shape: BoxShape.circle,
                         border: Border.all(
                           color: index <= step
@@ -283,7 +300,7 @@ class _RecoveryProgress extends StatelessWidget {
                         style: TextStyle(
                           color: index <= step
                               ? Colors.white
-                              : FishTraceColors.textSecondary,
+                              : Theme.of(context).colorScheme.onSurfaceVariant,
                           fontSize: 11,
                           fontWeight: FontWeight.w700,
                         ),
@@ -294,7 +311,7 @@ class _RecoveryProgress extends StatelessWidget {
                         child: Divider(
                           color: index < step
                               ? FishTraceColors.primary
-                              : FishTraceColors.border,
+                              : Theme.of(context).dividerColor,
                         ),
                       ),
                   ],

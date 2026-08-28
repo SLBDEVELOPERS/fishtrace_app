@@ -85,7 +85,7 @@ class _NotificationFilters extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Container(
-    color: FishTraceColors.surface,
+    color: Theme.of(context).colorScheme.surface,
     padding: const EdgeInsets.fromLTRB(16, 10, 16, 10),
     child: Obx(
       () => SegmentedButton<NotificationFilter>(
@@ -158,7 +158,7 @@ class _NotificationTile extends StatelessWidget {
     return FishTraceCard(
       onTap: onTap,
       color: item.read
-          ? FishTraceColors.surface
+          ? Theme.of(context).colorScheme.surface
           : FishTraceColors.oceanLight.withValues(alpha: .42),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,

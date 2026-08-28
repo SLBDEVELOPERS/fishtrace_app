@@ -33,9 +33,9 @@ class SecureMobileSettingsRepository implements MobileSettingsRepository {
           (value) => value.name == json['language'],
           orElse: () => MobileLanguage.english,
         ),
-        temperatureAlerts: json['temperature_alerts'] != false,
-        workflowUpdates: json['workflow_updates'] != false,
-        systemMessages: json['system_messages'] != false,
+        temperatureAlerts: json['temperature_alerts'] == true,
+        workflowUpdates: json['workflow_updates'] == true,
+        systemMessages: json['system_messages'] == true,
       );
     } on FormatException {
       return const MobileSettings();

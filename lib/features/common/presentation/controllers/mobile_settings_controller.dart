@@ -9,7 +9,13 @@ class MobileSettingsController extends GetxController {
   final MobileSettingsRepository _repository;
   final settings = const MobileSettings().obs;
 
-  Future<void> load() async => settings.value = await _repository.load();
+  Future<void> load() async {
+    final stored = await _repository.load();
+    settings.value = stored.copyWith(
+      measurementSystem: MeasurementSystem.metric,
+      language: MobileLanguage.english,
+    );
+  }
 
   Future<void> save(MobileSettings value) async {
     settings.value = value;

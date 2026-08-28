@@ -67,6 +67,11 @@ class FisherDashboardScreen extends StatelessWidget {
                   if (trip != null)
                     FishTraceCard(
                       onTap: () => context.go('/fisher/active-trip'),
+                      color: FishTraceColors.primary.withValues(alpha: .045),
+                      borderColor: FishTraceColors.primary.withValues(
+                        alpha: .18,
+                      ),
+                      elevation: 0,
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -85,7 +90,7 @@ class FisherDashboardScreen extends StatelessWidget {
                           ),
                           const SizedBox(height: FishTraceSpacing.xs),
                           Text(
-                            trip.id,
+                            trip.label,
                             style: Theme.of(context).textTheme.titleSmall,
                           ),
                           Text(
@@ -134,7 +139,9 @@ class FisherDashboardScreen extends StatelessWidget {
                     ),
                   const SizedBox(height: FishTraceSpacing.xs),
                   SizedBox(
-                    height: 104,
+                    height: MediaQuery.textScalerOf(context).scale(1) >= 1.5
+                        ? 140
+                        : 112,
                     child: Row(
                       children: [
                         Expanded(
@@ -244,50 +251,46 @@ class FisherDashboardScreen extends StatelessWidget {
                     ),
                   ),
                   const SectionHeader(title: 'Quick Actions'),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _QuickAction(
-                          icon: Icons.directions_boat_outlined,
-                          label: 'Boats',
-                          onTap: () => context.go('/fisher/boats'),
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: _QuickAction(
-                          icon: Icons.add_location_alt_outlined,
-                          label: trip == null
-                              ? 'Start Trip First'
-                              : 'Add Catch',
-                          enabled: trip != null,
-                          onTap: trip == null
-                              ? null
-                              : () => context.go('/fisher/add-catch'),
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: _QuickAction(
-                          icon: Icons.layers_outlined,
-                          label:
-                              controller.catches.any(
-                                (item) => item.availableWeightKg > .001,
-                              )
-                              ? 'Create Batch'
-                              : 'Add Catch First',
-                          enabled: controller.catches.any(
-                            (item) => item.availableWeightKg > .001,
+                  SizedBox(
+                    height: 86,
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: _QuickAction(
+                            icon: Icons.directions_boat_outlined,
+                            label: 'Manage boats',
+                            onTap: () => context.go('/fisher/boats'),
                           ),
-                          onTap:
-                              controller.catches.any(
-                                (item) => item.availableWeightKg > .001,
-                              )
-                              ? () => context.go('/fisher/create-batch')
-                              : null,
                         ),
-                      ),
-                    ],
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: _QuickAction(
+                            icon: Icons.add_location_alt_outlined,
+                            label: 'Add catch',
+                            enabled: trip != null,
+                            onTap: trip == null
+                                ? null
+                                : () => context.go('/fisher/add-catch'),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: _QuickAction(
+                            icon: Icons.layers_outlined,
+                            label: 'Create batch',
+                            enabled: controller.catches.any(
+                              (item) => item.availableWeightKg > .001,
+                            ),
+                            onTap:
+                                controller.catches.any(
+                                  (item) => item.availableWeightKg > .001,
+                                )
+                                ? () => context.go('/fisher/create-batch')
+                                : null,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ],
               ),
@@ -317,12 +320,21 @@ class _DashboardHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Container(
     width: double.infinity,
-    padding: const EdgeInsets.fromLTRB(16, 16, 10, 18),
+    padding: const EdgeInsets.fromLTRB(16, 20, 10, 22),
     decoration: const BoxDecoration(
       gradient: LinearGradient(
         colors: [FishTraceColors.primaryDark, FishTraceColors.primary],
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
       ),
-      borderRadius: BorderRadius.vertical(bottom: Radius.circular(18)),
+      borderRadius: BorderRadius.vertical(bottom: Radius.circular(24)),
+      boxShadow: [
+        BoxShadow(
+          color: Color(0x26004B5A),
+          blurRadius: 20,
+          offset: Offset(0, 7),
+        ),
+      ],
     ),
     child: SafeArea(
       bottom: false,
@@ -333,7 +345,7 @@ class _DashboardHeader extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Good morning, $userName 👋',
+                  'Good morning, $userName',
                   style: Theme.of(
                     context,
                   ).textTheme.titleMedium?.copyWith(color: Colors.white),
@@ -426,8 +438,16 @@ class _QuickAction extends StatelessWidget {
   @override
   Widget build(BuildContext context) => FishTraceCard(
     onTap: onTap,
-    padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 6),
+    color: enabled
+        ? FishTraceColors.primary.withValues(alpha: .035)
+        : Theme.of(context).colorScheme.surfaceContainerLow,
+    borderColor: enabled
+        ? FishTraceColors.primary.withValues(alpha: .14)
+        : Theme.of(context).colorScheme.outlineVariant.withValues(alpha: .4),
+    elevation: 0,
+    padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 6),
     child: Column(
+      mainAxisAlignment: MainAxisAlignment.center,
       children: [
         Icon(
           icon,
@@ -437,7 +457,8 @@ class _QuickAction extends StatelessWidget {
         const SizedBox(height: 6),
         Text(
           label,
-          maxLines: 1,
+          maxLines: 2,
+          textAlign: TextAlign.center,
           overflow: TextOverflow.ellipsis,
           style: Theme.of(context).textTheme.labelSmall?.copyWith(
             color: enabled ? null : FishTraceColors.disabled,

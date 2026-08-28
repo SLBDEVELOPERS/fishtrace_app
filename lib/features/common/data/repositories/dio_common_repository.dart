@@ -4,13 +4,10 @@ import '../../../../core/network/api_support.dart';
 import '../../domain/entities/app_notification.dart';
 import '../../domain/repositories/common_repository.dart';
 import '../dtos/notification_dto.dart';
-import 'mock_common_repository.dart';
 
 class DioCommonRepository implements CommonRepository {
-  DioCommonRepository(this._api, {MockCommonRepository? localSupport})
-    : _localSupport = localSupport ?? MockCommonRepository();
+  DioCommonRepository(this._api);
   final ApiClient _api;
-  final MockCommonRepository _localSupport;
 
   @override
   Future<List<AppNotification>> getNotifications() async {
@@ -45,9 +42,45 @@ class DioCommonRepository implements CommonRepository {
   @override
   Future<List<HelpArticle>> getHelpArticles() async {
     // The Laravel mobile contract intentionally has no help-content endpoint.
-    // Keep bundled support content available in API mode instead of issuing a
-    // guaranteed 404 request.
-    return _localSupport.getHelpArticles();
+    // This is bundled documentation, not simulated server data.
+    return const [
+      HelpArticle(
+        title: 'Getting Started',
+        subtitle: 'Learn the basics of FishTrace',
+        category: 'Quick Help',
+        iconKey: 'start',
+      ),
+      HelpArticle(
+        title: 'FAQs',
+        subtitle: 'Find answers to common questions',
+        category: 'Quick Help',
+        iconKey: 'faq',
+      ),
+      HelpArticle(
+        title: 'Best Practices',
+        subtitle: 'Tips for accurate tracking',
+        category: 'Quick Help',
+        iconKey: 'practice',
+      ),
+      HelpArticle(
+        title: 'Contact Support',
+        subtitle: 'Get help from our team',
+        category: 'Quick Help',
+        iconKey: 'contact',
+      ),
+      HelpArticle(
+        title: 'User Guide',
+        subtitle: 'Step-by-step instructions',
+        category: 'Resources',
+        iconKey: 'guide',
+      ),
+      HelpArticle(
+        title: 'Video Tutorials',
+        subtitle: 'Watch and learn',
+        category: 'Resources',
+        iconKey: 'video',
+      ),
+    ];
   }
 
   @override

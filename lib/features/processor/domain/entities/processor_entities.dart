@@ -1,4 +1,5 @@
 import '../../../../core/models/models.dart';
+import '../../../../core/utils/display_identifier.dart';
 
 class ProcessorQualityGrade {
   const ProcessorQualityGrade({
@@ -50,6 +51,9 @@ class GeneratedChildBatch {
   final String batchCode;
   final double weightKg;
   final String traceUrl;
+
+  String get label =>
+      DisplayIdentifier.resolve(id: id, code: batchCode, noun: 'Batch');
 }
 
 class IncomingBatch {
@@ -84,6 +88,9 @@ class IncomingBatch {
   final String batchCode;
   final String traceUrl;
   final List<IncomingBatchDocument> documents;
+
+  String get label =>
+      DisplayIdentifier.resolve(id: id, code: batchCode, noun: 'Batch');
 
   bool matchesScan(String value) {
     final normalized = value.trim().toLowerCase();
@@ -134,7 +141,8 @@ class ProcessingJob {
   final bool hasProcessingRecord;
   final DateTime startedAt;
 
-  String get batchLabel => batchCode.isNotEmpty ? batchCode : batchId;
+  String get batchLabel =>
+      DisplayIdentifier.resolve(id: batchId, code: batchCode, noun: 'Batch');
 }
 
 class InspectionCriterion {

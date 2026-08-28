@@ -22,12 +22,16 @@ abstract final class FishTraceColors {
   static const disabled = Color(0xFFB8C3CA);
 
   static const success = Color(0xFF1AA36F);
+  static const successText = Color(0xFF087A50);
   static const successSurface = Color(0xFFE7F7EF);
   static const warning = Color(0xFFF59B23);
+  static const warningText = Color(0xFF8A4B00);
   static const warningSurface = Color(0xFFFFF3DF);
   static const error = Color(0xFFE94848);
+  static const errorText = Color(0xFFB4232C);
   static const errorSurface = Color(0xFFFFEAEA);
   static const info = Color(0xFF2F80ED);
+  static const infoText = Color(0xFF175CD3);
   static const infoSurface = Color(0xFFEAF3FF);
 
   static const chartPrimary = Color(0xFF12A4A7);

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../../../app/theme/fishtrace_colors.dart';
 import '../../../app/theme/fishtrace_dimensions.dart';
@@ -20,6 +21,11 @@ class FishTraceTextField extends StatelessWidget {
     this.onChanged,
     this.onTap,
     this.required = false,
+    this.autofillHints,
+    this.inputFormatters,
+    this.onFieldSubmitted,
+    this.enableSuggestions = true,
+    this.autocorrect = true,
   });
 
   final String label;
@@ -36,6 +42,11 @@ class FishTraceTextField extends StatelessWidget {
   final ValueChanged<String>? onChanged;
   final VoidCallback? onTap;
   final bool required;
+  final Iterable<String>? autofillHints;
+  final List<TextInputFormatter>? inputFormatters;
+  final ValueChanged<String>? onFieldSubmitted;
+  final bool enableSuggestions;
+  final bool autocorrect;
 
   @override
   Widget build(BuildContext context) => Column(
@@ -53,6 +64,11 @@ class FishTraceTextField extends StatelessWidget {
         maxLines: obscureText ? 1 : maxLines,
         onChanged: onChanged,
         onTap: onTap,
+        autofillHints: autofillHints,
+        inputFormatters: inputFormatters,
+        onFieldSubmitted: onFieldSubmitted,
+        enableSuggestions: enableSuggestions,
+        autocorrect: autocorrect,
         decoration: InputDecoration(
           hintText: hint,
           prefixIcon: prefixIcon == null ? null : Icon(prefixIcon, size: 19),

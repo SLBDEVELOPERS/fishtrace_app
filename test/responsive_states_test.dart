@@ -53,6 +53,41 @@ void main() {
       });
     }
   }
+
+  for (final screen in auditScreens.where(
+    (screen) => const {
+      '06_profile_settings',
+      'fisher_dashboard',
+      'fisher_batch_details',
+      'processor_dashboard',
+      'transporter_dashboard',
+      'retailer_dashboard',
+      'transporter_delivery',
+    }.contains(screen.name),
+  )) {
+    testWidgets('${screen.name} supports 200% text and dark mode', (
+      tester,
+    ) async {
+      tester.view.devicePixelRatio = 1;
+      tester.view.physicalSize = const Size(390, 844);
+      tester.platformDispatcher.textScaleFactorTestValue = 2;
+      addTearDown(tester.view.resetDevicePixelRatio);
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+      addTearDown(Get.reset);
+      registerTestDependencies(role: screen.role);
+
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: buildFishTraceTheme(brightness: Brightness.dark),
+          home: screen.builder(),
+        ),
+      );
+      await tester.pump(const Duration(milliseconds: 350));
+
+      expect(tester.takeException(), isNull);
+    });
+  }
 }
 
 void _noop() {}

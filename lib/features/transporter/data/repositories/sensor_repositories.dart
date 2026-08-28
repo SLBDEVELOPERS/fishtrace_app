@@ -48,6 +48,38 @@ class MockLiveSensorRepository implements LiveSensorRepository {
   Future<void> dispose() => _stream.dispose();
 }
 
+/// Uses the permanent Laravel telemetry API when Firebase streaming is
+/// intentionally disabled. No readings are synthesized.
+class PollingLiveSensorRepository implements LiveSensorRepository {
+  PollingLiveSensorRepository(
+    this._sensors, {
+    this.interval = const Duration(seconds: 10),
+  });
+
+  final SensorRepository _sensors;
+  final Duration interval;
+  var _generation = 0;
+
+  @override
+  Stream<SensorReading> watchTrip(String tripId) async* {
+    final generation = ++_generation;
+    DateTime? lastRecordedAt;
+    while (generation == _generation) {
+      final reading = await _sensors.latest(tripId);
+      if (reading != null && reading.recordedAt != lastRecordedAt) {
+        lastRecordedAt = reading.recordedAt;
+        yield reading;
+      }
+      await Future<void>.delayed(interval);
+    }
+  }
+
+  @override
+  Future<void> dispose() async {
+    _generation++;
+  }
+}
+
 class FirebaseLiveSensorRepository implements LiveSensorRepository {
   FirebaseLiveSensorRepository({
     required ApiClient api,

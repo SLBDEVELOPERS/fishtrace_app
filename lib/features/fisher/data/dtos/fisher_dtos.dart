@@ -40,6 +40,7 @@ class FisherCatchDto {
   FisherCatch toDomain() {
     final speciesData = _map(json['species']);
     final gearData = _map(json['gear']);
+    final trip = _map(ApiData.value(json, 'fishingTrip'));
     final images = ApiData.listValue(json, 'images');
     final batches = ApiData.listValue(json, 'batches');
     return FisherCatch(
@@ -69,6 +70,13 @@ class FisherCatchDto {
               (batches.first as Map).cast<String, Object?>(),
               'id',
             ),
+      linkedBatchCode: batches.isEmpty
+          ? ''
+          : ApiData.string(
+              (batches.first as Map).cast<String, Object?>(),
+              'batchCode',
+            ),
+      tripCode: ApiData.string(trip, 'tripCode'),
       allocatedWeightKg: ApiData.number(json, 'allocatedWeightKg'),
     );
   }
@@ -82,6 +90,7 @@ class FisherBatchDto {
 
   FisherBatchSummary toDomain() {
     final speciesData = _map(json['species']);
+    final trip = _map(json['trip']);
     return FisherBatchSummary(
       id: ApiData.string(json, 'id'),
       batchCode: ApiData.string(json, 'batchCode'),
@@ -91,6 +100,7 @@ class FisherBatchDto {
       grade: _qualityGrade(ApiData.string(json, 'quality_grade')),
       status: _batchStatus(ApiData.string(json, 'status')),
       tripId: ApiData.string(json, 'fishing_trip_id'),
+      tripCode: ApiData.string(trip, 'tripCode'),
       createdAt: ApiData.date(json, 'createdAt'),
     );
   }

@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import '../network/error_mapper.dart';
+import '../widgets/overlays/fishtrace_overlays.dart';
 import 'app_exceptions.dart';
 
 final rootScaffoldMessengerKey = GlobalKey<ScaffoldMessengerState>();
@@ -97,11 +98,11 @@ class AppErrorHandler {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final messenger = rootScaffoldMessengerKey.currentState;
       if (messenger == null) return;
-      messenger
-        ..hideCurrentSnackBar()
-        ..showSnackBar(
-          SnackBar(content: Text(message), behavior: SnackBarBehavior.floating),
-        );
+      FishTraceFeedback.showForMessenger(
+        messenger,
+        message,
+        tone: FishTraceFeedbackTone.error,
+      );
     });
   }
 }

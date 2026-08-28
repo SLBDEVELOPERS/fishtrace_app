@@ -166,10 +166,9 @@ class HelpSupportScreen extends StatelessWidget {
                     );
                     if (success && sheetContext.mounted) {
                       Navigator.pop(sheetContext);
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Support issue submitted'),
-                        ),
+                      FishTraceFeedback.success(
+                        context,
+                        'Support issue submitted',
                       );
                     }
                   },

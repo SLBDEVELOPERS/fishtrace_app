@@ -34,7 +34,6 @@ class _BatchDetailsScreenState extends State<BatchDetailsScreen> {
   @override
   Widget build(BuildContext context) {
     return FishTraceScaffold(
-      backgroundColor: FishTraceColors.navy,
       appBar: const FishTraceAppBar(
         title: 'Batch Details',
         leading: BackButton(color: Colors.white),
@@ -84,69 +83,8 @@ class _BatchCertificate extends StatelessWidget {
   Widget build(BuildContext context) => ListView(
     padding: const EdgeInsets.all(FishTraceSpacing.md),
     children: [
-      Row(
-        children: [
-          const Icon(Icons.set_meal, color: Colors.white, size: 34),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  details?.batchCode.isNotEmpty == true
-                      ? details!.batchCode
-                      : batch.id,
-                  style: Theme.of(
-                    context,
-                  ).textTheme.titleMedium?.copyWith(color: Colors.white),
-                ),
-                Text(
-                  batch.species,
-                  style: Theme.of(
-                    context,
-                  ).textTheme.bodySmall?.copyWith(color: Colors.white70),
-                ),
-              ],
-            ),
-          ),
-          StatusChip(label: details?.statusLabel ?? batch.status.name),
-        ],
-      ),
-      const SizedBox(height: 8),
-      Text(
-        'Created ${FishTraceTime.format(batch.createdAt, 'MMM d, yyyy · hh:mm a')}',
-        style: Theme.of(
-          context,
-        ).textTheme.bodySmall?.copyWith(color: Colors.white70),
-      ),
-      const SizedBox(height: 16),
-      FishTraceCard(
-        color: Colors.white.withValues(alpha: .06),
-        borderColor: Colors.white.withValues(alpha: .18),
-        child: Row(
-          children: [
-            Expanded(
-              child: _CertificateMetric(
-                label: 'Total Catch',
-                value: '${batch.weightKg.toStringAsFixed(1)} kg',
-              ),
-            ),
-            Expanded(
-              child: _CertificateMetric(
-                label: 'No. of Fish',
-                value: '${batch.fishCount}',
-              ),
-            ),
-            Expanded(
-              child: _CertificateMetric(
-                label: 'Grade',
-                value: batch.grade.name.toUpperCase(),
-              ),
-            ),
-          ],
-        ),
-      ),
-      const SizedBox(height: 16),
+      _BatchIdentityPanel(batch: batch, details: details),
+      const SectionHeader(title: 'Verification QR'),
       QRCodeCard(
         data: details?.traceUrl.isNotEmpty == true
             ? details!.traceUrl
@@ -155,71 +93,79 @@ class _BatchCertificate extends StatelessWidget {
             ? 'Scan to verify batch details'
             : 'Public QR available after sync',
         size: 210,
-        dark: true,
         onFullscreen: () => _showFullQr(context, batch),
       ),
-      const SizedBox(height: 12),
+      const SectionHeader(title: 'Source information'),
       FishTraceCard(
-        color: Colors.white.withValues(alpha: .06),
-        borderColor: Colors.white.withValues(alpha: .18),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+        elevation: 0,
+        child: Row(
           children: [
-            Text(
-              'Linked Trip',
-              style: Theme.of(
-                context,
-              ).textTheme.bodySmall?.copyWith(color: Colors.white70),
+            Container(
+              width: 42,
+              height: 42,
+              decoration: BoxDecoration(
+                color: FishTraceColors.primary.withValues(alpha: .09),
+                borderRadius: BorderRadius.circular(FishTraceRadii.input),
+              ),
+              child: const Icon(
+                Icons.route_outlined,
+                color: FishTraceColors.primary,
+                size: 21,
+              ),
             ),
-            const SizedBox(height: 3),
-            Text(
-              details?.tripCode.isNotEmpty == true
-                  ? details!.tripCode
-                  : batch.tripId,
-              style: Theme.of(
-                context,
-              ).textTheme.titleSmall?.copyWith(color: Colors.white),
-            ),
-            Text(
-              details?.boatName.isNotEmpty == true
-                  ? details!.boatName
-                  : 'Boat details unavailable',
-              style: Theme.of(
-                context,
-              ).textTheme.bodySmall?.copyWith(color: Colors.white70),
+            const SizedBox(width: FishTraceSpacing.sm),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Linked trip',
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    details?.tripCode.isNotEmpty == true
+                        ? details!.tripCode
+                        : batch.tripLabel,
+                    style: Theme.of(context).textTheme.titleSmall,
+                  ),
+                  Text(
+                    details?.boatName.isNotEmpty == true
+                        ? details!.boatName
+                        : 'Boat details unavailable',
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                ],
+              ),
             ),
           ],
         ),
       ),
-      const SizedBox(height: 12),
+      const SectionHeader(title: 'Traceability timeline'),
       _TraceabilityTimeline(details: details),
-      const SizedBox(height: 14),
+      const SizedBox(height: FishTraceSpacing.lg),
       Row(
         children: [
           Expanded(
-            child: TextButton.icon(
+            child: OutlinedButton.icon(
               onPressed: details?.traceUrl.isNotEmpty == true
                   ? () => _copyTraceLink(context)
                   : null,
-              icon: const Icon(Icons.copy_outlined, color: Colors.white),
-              label: const Text(
-                'Copy link',
-                style: TextStyle(color: Colors.white),
-              ),
+              icon: const Icon(Icons.copy_outlined, size: 18),
+              label: const Text('Copy link'),
             ),
           ),
+          const SizedBox(width: FishTraceSpacing.sm),
           Expanded(
-            child: TextButton.icon(
+            child: FilledButton.icon(
               onPressed: () => _showFullQr(context, batch),
-              icon: const Icon(Icons.share_outlined, color: Colors.white),
-              label: const Text(
-                'Show QR',
-                style: TextStyle(color: Colors.white),
-              ),
+              icon: const Icon(Icons.qr_code_2, size: 18),
+              label: const Text('Show QR'),
             ),
           ),
         ],
       ),
+      const SizedBox(height: FishTraceSpacing.md),
     ],
   );
 
@@ -246,7 +192,7 @@ class _BatchCertificate extends StatelessWidget {
                     data: details?.traceUrl.isNotEmpty == true
                         ? details!.traceUrl
                         : 'fishtrace://batch/${batch.id}',
-                    caption: batch.id,
+                    caption: batch.label,
                     size: 280,
                     dark: true,
                   ),
@@ -261,11 +207,137 @@ class _BatchCertificate extends StatelessWidget {
   Future<void> _copyTraceLink(BuildContext context) async {
     await Clipboard.setData(ClipboardData(text: details!.traceUrl));
     if (context.mounted) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Public trace link copied')));
+      FishTraceFeedback.success(context, 'Public trace link copied');
     }
   }
+}
+
+class _BatchIdentityPanel extends StatelessWidget {
+  const _BatchIdentityPanel({required this.batch, required this.details});
+
+  final FisherBatchSummary batch;
+  final FisherBatchDetails? details;
+
+  @override
+  Widget build(BuildContext context) => Container(
+    padding: const EdgeInsets.all(FishTraceSpacing.md),
+    decoration: BoxDecoration(
+      gradient: const LinearGradient(
+        colors: [FishTraceColors.navy, FishTraceColors.primaryDark],
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+      ),
+      borderRadius: BorderRadius.circular(FishTraceRadii.panel),
+      boxShadow: [
+        BoxShadow(
+          color: FishTraceColors.navy.withValues(alpha: .18),
+          blurRadius: 22,
+          offset: const Offset(0, 8),
+        ),
+      ],
+    ),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Container(
+              width: 46,
+              height: 46,
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: .10),
+                borderRadius: BorderRadius.circular(FishTraceRadii.input),
+              ),
+              child: const Icon(Icons.set_meal, color: Colors.white, size: 26),
+            ),
+            const SizedBox(width: FishTraceSpacing.sm),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    details?.batchCode.isNotEmpty == true
+                        ? details!.batchCode
+                        : batch.label,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: Theme.of(
+                      context,
+                    ).textTheme.titleMedium?.copyWith(color: Colors.white),
+                  ),
+                  Text(
+                    batch.species,
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: Colors.white.withValues(alpha: .76),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: FishTraceSpacing.xs),
+            StatusChip(
+              label: details?.statusLabel ?? batch.status.name,
+              onDark: true,
+            ),
+          ],
+        ),
+        const SizedBox(height: FishTraceSpacing.sm),
+        Text(
+          'Created ${FishTraceTime.format(batch.createdAt, 'MMM d, yyyy · hh:mm a')}',
+          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+            color: Colors.white.withValues(alpha: .72),
+          ),
+        ),
+        const SizedBox(height: FishTraceSpacing.md),
+        Container(
+          padding: const EdgeInsets.symmetric(
+            horizontal: FishTraceSpacing.xs,
+            vertical: FishTraceSpacing.sm,
+          ),
+          decoration: BoxDecoration(
+            color: Colors.white.withValues(alpha: .07),
+            borderRadius: BorderRadius.circular(FishTraceRadii.card),
+            border: Border.all(color: Colors.white.withValues(alpha: .12)),
+          ),
+          child: Row(
+            children: [
+              Expanded(
+                child: _CertificateMetric(
+                  label: 'Total catch',
+                  value: '${batch.weightKg.toStringAsFixed(1)} kg',
+                ),
+              ),
+              _MetricDivider(),
+              Expanded(
+                child: _CertificateMetric(
+                  label: 'Fish count',
+                  value: '${batch.fishCount}',
+                ),
+              ),
+              _MetricDivider(),
+              Expanded(
+                child: _CertificateMetric(
+                  label: 'Grade',
+                  value: batch.grade.name.toUpperCase(),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    ),
+  );
+}
+
+class _MetricDivider extends StatelessWidget {
+  const _MetricDivider();
+
+  @override
+  Widget build(BuildContext context) => Container(
+    width: 1,
+    height: 34,
+    color: Colors.white.withValues(alpha: .14),
+  );
 }
 
 class _CertificateMetric extends StatelessWidget {
@@ -303,26 +375,38 @@ class _TraceabilityTimeline extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => FishTraceCard(
-    color: Colors.white.withValues(alpha: .06),
-    borderColor: Colors.white.withValues(alpha: .18),
+    elevation: 0,
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          'Traceability Timeline',
-          style: Theme.of(
-            context,
-          ).textTheme.titleSmall?.copyWith(color: Colors.white),
-        ),
-        const SizedBox(height: 10),
         if (details == null || details!.events.isEmpty)
-          const Text(
-            'No traceability events recorded yet.',
-            style: TextStyle(color: Colors.white70, fontSize: 12),
+          Row(
+            children: [
+              Container(
+                width: 34,
+                height: 34,
+                decoration: BoxDecoration(
+                  color: FishTraceColors.primary.withValues(alpha: .09),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.history_toggle_off,
+                  color: FishTraceColors.primary,
+                  size: 18,
+                ),
+              ),
+              const SizedBox(width: FishTraceSpacing.sm),
+              Expanded(
+                child: Text(
+                  'No traceability events recorded yet.',
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+              ),
+            ],
           ),
         for (final event in details?.events ?? const <BatchTimelineEvent>[])
           Padding(
-            padding: const EdgeInsets.symmetric(vertical: 5),
+            padding: const EdgeInsets.symmetric(vertical: 7),
             child: Row(
               children: [
                 const Icon(
@@ -334,32 +418,32 @@ class _TraceabilityTimeline extends StatelessWidget {
                 Expanded(
                   child: Text(
                     event.title,
-                    style: const TextStyle(color: Colors.white, fontSize: 12),
+                    style: Theme.of(context).textTheme.labelMedium,
                   ),
                 ),
                 Text(
                   DateFormat(
                     'MMM d · hh:mm a',
                   ).format(FishTraceTime.inSriLanka(event.occurredAt)),
-                  style: const TextStyle(color: Colors.white70, fontSize: 11),
+                  style: Theme.of(context).textTheme.bodySmall,
                 ),
               ],
             ),
           ),
         if (details?.documents.isNotEmpty == true) ...[
-          const Divider(color: Colors.white24),
+          const Divider(),
           for (final document in details!.documents)
             ListTile(
               dense: true,
               contentPadding: EdgeInsets.zero,
               leading: const Icon(
                 Icons.description_outlined,
-                color: FishTraceColors.aqua,
+                color: FishTraceColors.primary,
                 size: 18,
               ),
               title: Text(
                 document.name,
-                style: const TextStyle(color: Colors.white, fontSize: 12),
+                style: Theme.of(context).textTheme.labelMedium,
               ),
             ),
         ],

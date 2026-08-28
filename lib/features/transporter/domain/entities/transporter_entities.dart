@@ -1,4 +1,5 @@
 import '../../../../core/models/models.dart';
+import '../../../../core/utils/display_identifier.dart';
 
 class TransporterTripView {
   const TransporterTripView({
@@ -47,7 +48,8 @@ class TransporterTripView {
   final double? destinationLatitude;
   final double? destinationLongitude;
 
-  String get label => tripCode.isNotEmpty ? tripCode : id;
+  String get label =>
+      DisplayIdentifier.resolve(id: id, code: tripCode, noun: 'Trip');
 
   TransporterTripView copyWith({TripStatus? status, DateTime? arrivedAt}) =>
       TransporterTripView(
@@ -104,9 +106,7 @@ class TransportVehicleView {
 
   String get label => name.isNotEmpty
       ? name
-      : registration.isNotEmpty
-      ? registration
-      : id;
+      : DisplayIdentifier.resolve(id: id, code: registration, noun: 'Vehicle');
 }
 
 class TransportDeviceView {
@@ -134,9 +134,7 @@ class TransportDeviceView {
 
   String get label => displayName.isNotEmpty
       ? displayName
-      : deviceCode.isNotEmpty
-      ? deviceCode
-      : id;
+      : DisplayIdentifier.resolve(id: id, code: deviceCode, noun: 'Device');
 }
 
 class HandoverBatch {
@@ -153,6 +151,9 @@ class HandoverBatch {
   final double weightKg;
   final String batchCode;
   final String traceUrl;
+
+  String get label =>
+      DisplayIdentifier.resolve(id: id, code: batchCode, noun: 'Batch');
 
   bool matchesScan(String value) {
     final normalized = value.trim().toLowerCase();

@@ -136,9 +136,11 @@ class PreTripChecklistScreen extends StatelessWidget {
             ),
             Container(
               padding: const EdgeInsets.fromLTRB(16, 10, 16, 12),
-              decoration: const BoxDecoration(
-                color: FishTraceColors.surface,
-                border: Border(top: BorderSide(color: FishTraceColors.border)),
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.surface,
+                border: Border(
+                  top: BorderSide(color: Theme.of(context).dividerColor),
+                ),
               ),
               child: FishTracePrimaryButton(
                 label: checklistComplete && checklistSaved
@@ -153,17 +155,14 @@ class PreTripChecklistScreen extends StatelessWidget {
                 onPressed: () async {
                   final error = controller.validateChecklist();
                   if (error != null) {
-                    ScaffoldMessenger.of(
-                      context,
-                    ).showSnackBar(SnackBar(content: Text(error)));
+                    FishTraceFeedback.warning(context, error);
                     return;
                   }
                   final trip = controller.selectedTrip.value;
                   if (trip == null) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Select a transport trip first'),
-                      ),
+                    FishTraceFeedback.warning(
+                      context,
+                      'Select a transport trip first',
                     );
                     return;
                   }
@@ -209,20 +208,16 @@ class PreTripChecklistScreen extends StatelessWidget {
                       final nextStep = refreshedTrip?.assignedDeviceId == null
                           ? 'Assign an IoT device before starting the trip.'
                           : 'You can now start the trip.';
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text('Checklist completed. $nextStep'),
-                        ),
+                      FishTraceFeedback.success(
+                        context,
+                        'Checklist completed. $nextStep',
                       );
                     }
                   } catch (error) {
                     if (context.mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(
-                            error.toString().replaceFirst('Bad state: ', ''),
-                          ),
-                        ),
+                      FishTraceFeedback.error(
+                        context,
+                        error.toString().replaceFirst('Bad state: ', ''),
                       );
                     }
                   }
@@ -309,7 +304,7 @@ class _LiveMonitoringScreenState extends State<LiveMonitoringScreen> {
         body: Column(
           children: [
             Container(
-              color: FishTraceColors.surface,
+              color: Theme.of(context).colorScheme.surface,
               child: const TabBar(
                 tabs: [
                   Tab(text: 'Overview'),
@@ -669,15 +664,15 @@ class _MonitoringAlerts extends StatelessWidget {
                         final queued = await controller.acknowledgeAlert(alert);
                         if (!context.mounted || queued == null) return;
                         if (queued.status != SyncStatus.synced) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text(
-                                queued.status == SyncStatus.failed
-                                    ? queued.lastError ??
-                                          'Alert acknowledgement failed.'
-                                    : 'Acknowledgement is queued and not applied yet.',
-                              ),
-                            ),
+                          FishTraceFeedback.show(
+                            context,
+                            queued.status == SyncStatus.failed
+                                ? queued.lastError ??
+                                      'Alert acknowledgement failed.'
+                                : 'Acknowledgement is queued and not applied yet.',
+                            tone: queued.status == SyncStatus.failed
+                                ? FishTraceFeedbackTone.error
+                                : FishTraceFeedbackTone.warning,
                           );
                         }
                       },
@@ -770,14 +765,14 @@ class _MonitoringAlerts extends StatelessWidget {
                 );
                 if (queued.status != SyncStatus.synced) {
                   if (dialogContext.mounted) {
-                    ScaffoldMessenger.of(dialogContext).showSnackBar(
-                      SnackBar(
-                        content: Text(
-                          queued.status == SyncStatus.failed
-                              ? queued.lastError ?? 'Incident report failed.'
-                              : 'Incident is queued and not submitted yet.',
-                        ),
-                      ),
+                    FishTraceFeedback.show(
+                      dialogContext,
+                      queued.status == SyncStatus.failed
+                          ? queued.lastError ?? 'Incident report failed.'
+                          : 'Incident is queued and not submitted yet.',
+                      tone: queued.status == SyncStatus.failed
+                          ? FishTraceFeedbackTone.error
+                          : FishTraceFeedbackTone.warning,
                     );
                   }
                   return;
@@ -822,15 +817,11 @@ class _DeliveryConfirmationScreenState
   Future<void> _confirm() async {
     if (!_formKey.currentState!.validate()) return;
     if (!_signed) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Receiver signature is required')),
-      );
+      FishTraceFeedback.warning(context, 'Receiver signature is required');
       return;
     }
     if (_photos.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Add at least one delivery photo')),
-      );
+      FishTraceFeedback.warning(context, 'Add at least one delivery photo');
       return;
     }
     final controller = Get.find<TransporterController>();
@@ -840,9 +831,7 @@ class _DeliveryConfirmationScreenState
     if (bytes == null) {
       if (mounted) {
         setState(() => _saving = false);
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Unable to save receiver signature')),
-        );
+        FishTraceFeedback.error(context, 'Unable to save receiver signature');
       }
       return;
     }
@@ -909,9 +898,7 @@ class _DeliveryConfirmationScreenState
       if (mounted) context.go('/transporter');
     } catch (error) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(error.toString())));
+        FishTraceFeedback.error(context, error.toString());
       }
     } finally {
       if (mounted) setState(() => _saving = false);
@@ -976,11 +963,7 @@ class _DeliveryConfirmationScreenState
                     for (final batch in trip.batches)
                       ListTile(
                         dense: true,
-                        title: Text(
-                          batch.batchCode.isNotEmpty
-                              ? batch.batchCode
-                              : batch.id,
-                        ),
+                        title: Text(batch.label),
                         trailing: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [

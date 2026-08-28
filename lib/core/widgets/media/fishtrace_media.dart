@@ -46,39 +46,53 @@ class ImageAttachmentPicker extends StatelessWidget {
                 final image = images[index];
                 return Stack(
                   children: [
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(
-                        FishTraceRadii.control,
-                      ),
-                      child: Image.file(
-                        File(image.path),
-                        width: 78,
-                        height: 78,
-                        fit: BoxFit.cover,
-                        errorBuilder: (_, __, ___) => Container(
+                    Semantics(
+                      image: true,
+                      label: 'Attachment ${index + 1}',
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(
+                          FishTraceRadii.control,
+                        ),
+                        child: Image.file(
+                          File(image.path),
                           width: 78,
                           height: 78,
-                          color: FishTraceColors.surfaceMuted,
-                          child: const Icon(Icons.image_outlined),
+                          fit: BoxFit.cover,
+                          errorBuilder: (_, __, ___) => Container(
+                            width: 78,
+                            height: 78,
+                            color: FishTraceColors.surfaceMuted,
+                            child: const Icon(Icons.image_outlined),
+                          ),
                         ),
                       ),
                     ),
                     Positioned(
-                      top: 2,
-                      right: 2,
-                      child: InkWell(
-                        onTap: () => onRemove(image),
-                        child: Container(
-                          width: 24,
-                          height: 24,
-                          decoration: const BoxDecoration(
-                            color: FishTraceColors.navy,
-                            shape: BoxShape.circle,
-                          ),
-                          child: const Icon(
-                            Icons.close,
-                            color: Colors.white,
-                            size: 15,
+                      top: 0,
+                      right: 0,
+                      child: Semantics(
+                        button: true,
+                        label: 'Remove attachment ${index + 1}',
+                        child: InkResponse(
+                          radius: 22,
+                          onTap: () => onRemove(image),
+                          child: SizedBox.square(
+                            dimension: FishTraceSizes.touchTarget,
+                            child: Center(
+                              child: Container(
+                                width: 28,
+                                height: 28,
+                                decoration: const BoxDecoration(
+                                  color: FishTraceColors.navy,
+                                  shape: BoxShape.circle,
+                                ),
+                                child: const Icon(
+                                  Icons.close,
+                                  color: Colors.white,
+                                  size: 17,
+                                ),
+                              ),
+                            ),
                           ),
                         ),
                       ),
@@ -125,11 +139,23 @@ class SignaturePad extends StatefulWidget {
 
 class SignaturePadState extends State<SignaturePad> {
   final List<List<Offset>> _strokes = [];
+  final _typedSignature = TextEditingController();
 
-  bool get hasSignature => _strokes.any((stroke) => stroke.length > 1);
+  bool get hasSignature =>
+      _strokes.any((stroke) => stroke.length > 1) ||
+      _typedSignature.text.trim().isNotEmpty;
+
+  @override
+  void dispose() {
+    _typedSignature.dispose();
+    super.dispose();
+  }
 
   void clear() {
-    setState(_strokes.clear);
+    setState(() {
+      _strokes.clear();
+      _typedSignature.clear();
+    });
     widget.onChanged(false);
   }
 
@@ -138,6 +164,18 @@ class SignaturePadState extends State<SignaturePad> {
     final recorder = ui.PictureRecorder();
     final canvas = Canvas(recorder);
     _SignaturePainter(_strokes).paint(canvas, Size(390, widget.height));
+    final typed = _typedSignature.text.trim();
+    if (typed.isNotEmpty) {
+      final paragraph =
+          (ui.ParagraphBuilder(
+              ui.ParagraphStyle(fontSize: 26, fontStyle: FontStyle.italic),
+            )..addText(typed)).build()
+            ..layout(const ui.ParagraphConstraints(width: 358));
+      canvas.drawParagraph(
+        paragraph,
+        Offset(16, (widget.height - paragraph.height) / 2),
+      );
+    }
     return recorder.endRecording().toImage(
       (390 * pixelRatio).round(),
       (widget.height * pixelRatio).round(),
@@ -194,6 +232,20 @@ class SignaturePadState extends State<SignaturePad> {
             ),
           ),
         ),
+      ),
+      const SizedBox(height: FishTraceSpacing.xs),
+      TextField(
+        controller: _typedSignature,
+        autofillHints: const [AutofillHints.name],
+        textInputAction: TextInputAction.done,
+        decoration: const InputDecoration(
+          labelText: 'Typed signature (accessibility alternative)',
+          hintText: 'Receiver full name',
+        ),
+        onChanged: (_) {
+          setState(() {});
+          widget.onChanged(hasSignature);
+        },
       ),
     ],
   );

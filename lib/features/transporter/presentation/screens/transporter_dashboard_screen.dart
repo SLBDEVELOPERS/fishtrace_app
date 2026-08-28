@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../app/router/app_router.dart';
 import '../../../../app/theme/fishtrace_colors.dart';
+import '../../../../app/theme/fishtrace_dimensions.dart';
 import '../../../../core/models/models.dart';
 import '../../../../core/utils/fishtrace_time.dart';
 import '../../../../core/widgets/fishtrace_widgets.dart';
@@ -66,17 +67,26 @@ class _TransporterDashboardScreenState
             padding: EdgeInsets.zero,
             children: [
               Container(
-                padding: const EdgeInsets.fromLTRB(16, 16, 10, 18),
+                padding: const EdgeInsets.fromLTRB(16, 20, 10, 22),
                 decoration: const BoxDecoration(
                   gradient: LinearGradient(
                     colors: [
                       FishTraceColors.primaryDark,
                       FishTraceColors.primary,
                     ],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
                   ),
                   borderRadius: BorderRadius.vertical(
-                    bottom: Radius.circular(18),
+                    bottom: Radius.circular(24),
                   ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Color(0x26004B5A),
+                      blurRadius: 20,
+                      offset: Offset(0, 7),
+                    ),
+                  ],
                 ),
                 child: SafeArea(
                   bottom: false,
@@ -87,7 +97,7 @@ class _TransporterDashboardScreenState
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'Good morning, $userName 👋',
+                              'Good morning, $userName',
                               style: Theme.of(context).textTheme.titleMedium
                                   ?.copyWith(color: Colors.white),
                             ),
@@ -123,6 +133,11 @@ class _TransporterDashboardScreenState
                           controller.selectTrip(trip);
                           context.go('/transporter/trip-details');
                         },
+                        color: FishTraceColors.primary.withValues(alpha: .045),
+                        borderColor: FishTraceColors.primary.withValues(
+                          alpha: .18,
+                        ),
+                        elevation: 0,
                         child: Column(
                           children: [
                             Row(
@@ -215,7 +230,7 @@ class _TransporterDashboardScreenState
                           Container(
                             width: 1,
                             height: 48,
-                            color: FishTraceColors.divider,
+                            color: Theme.of(context).dividerColor,
                           ),
                           Expanded(
                             child: _SensorSummary(
@@ -259,40 +274,37 @@ class _TransporterDashboardScreenState
                         const SizedBox(height: 8),
                       ],
                     const SectionHeader(title: 'Quick Actions'),
-                    Row(
+                    GridView.count(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      crossAxisCount: 2,
+                      mainAxisSpacing: FishTraceSpacing.xs,
+                      crossAxisSpacing: FishTraceSpacing.xs,
+                      childAspectRatio: 2.7,
                       children: [
                         _Action(
-                          label: trip?.status == TripStatus.upcoming
-                              ? 'Start Trip'
-                              : 'No Trip Ready',
+                          label: 'Start trip',
                           icon: Icons.navigation_outlined,
                           onTap: trip?.status == TripStatus.upcoming
                               ? () => context.go('/transporter/checklist')
                               : null,
                         ),
-                        const SizedBox(width: 7),
                         _Action(
-                          label: trip?.status == TripStatus.upcoming
-                              ? 'Add Batch'
-                              : 'Trip Not Editable',
+                          label: 'Add batch',
                           icon: Icons.qr_code_scanner,
                           onTap: trip?.status == TripStatus.upcoming
                               ? () => context.go('/transporter/add-batch')
                               : null,
                         ),
-                        const SizedBox(width: 7),
                         _Action(
-                          label: trip?.status == TripStatus.inProgress
-                              ? 'Live Tracking'
-                              : 'Tracking Inactive',
+                          label: 'Live tracking',
                           icon: Icons.sensors,
                           onTap: trip?.status == TripStatus.inProgress
                               ? () => context.go('/transporter/monitoring')
                               : null,
                         ),
-                        const SizedBox(width: 7),
                         _Action(
-                          label: 'Checklist',
+                          label: 'Pre-trip checklist',
                           icon: Icons.checklist,
                           onTap: trip?.status == TripStatus.upcoming
                               ? () => context.go('/transporter/checklist')
@@ -363,30 +375,53 @@ class _Action extends StatelessWidget {
   final IconData icon;
   final VoidCallback? onTap;
   @override
-  Widget build(BuildContext context) => Expanded(
-    child: FishTraceCard(
+  Widget build(BuildContext context) {
+    final enabled = onTap != null;
+    return FishTraceCard(
       onTap: onTap,
-      padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 12),
-      child: Column(
+      color: enabled
+          ? FishTraceColors.primary.withValues(alpha: .035)
+          : Theme.of(context).colorScheme.surfaceContainerLow,
+      borderColor: enabled
+          ? FishTraceColors.primary.withValues(alpha: .14)
+          : Theme.of(context).colorScheme.outlineVariant.withValues(alpha: .4),
+      elevation: 0,
+      padding: const EdgeInsets.symmetric(
+        horizontal: FishTraceSpacing.sm,
+        vertical: FishTraceSpacing.xs,
+      ),
+      child: Row(
         children: [
-          Icon(
-            icon,
-            color: onTap == null
-                ? FishTraceColors.disabled
-                : FishTraceColors.primary,
-            size: 20,
+          Container(
+            width: 34,
+            height: 34,
+            decoration: BoxDecoration(
+              color: enabled
+                  ? FishTraceColors.primary.withValues(alpha: .10)
+                  : Colors.transparent,
+              borderRadius: BorderRadius.circular(FishTraceRadii.control),
+            ),
+            child: Icon(
+              icon,
+              color: enabled
+                  ? FishTraceColors.primary
+                  : FishTraceColors.disabled,
+              size: 19,
+            ),
           ),
-          const SizedBox(height: 5),
-          Text(
-            label,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: Theme.of(context).textTheme.labelSmall?.copyWith(
-              color: onTap == null ? FishTraceColors.disabled : null,
+          const SizedBox(width: FishTraceSpacing.xs),
+          Expanded(
+            child: Text(
+              label,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                color: enabled ? null : FishTraceColors.disabled,
+              ),
             ),
           ),
         ],
       ),
-    ),
-  );
+    );
+  }
 }

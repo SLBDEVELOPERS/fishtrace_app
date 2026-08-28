@@ -390,6 +390,27 @@ class FishTraceDatabase extends _$FishTraceDatabase {
         .toList(growable: false);
   }
 
+  Future<void> cacheApiResponse(String key, Object? payload) => saveLocalRecord(
+    localId: 'api-cache:$key',
+    recordType: 'api-cache',
+    payload: jsonEncode(payload),
+    status: SyncStatus.synced,
+  );
+
+  Future<Object?> readCachedApiResponse(String key) async {
+    final row =
+        await (select(localRecords)
+              ..where((record) => record.localId.equals('api-cache:$key'))
+              ..limit(1))
+            .getSingleOrNull();
+    if (row == null || row.deleted) return null;
+    try {
+      return jsonDecode(row.payload);
+    } on FormatException {
+      return null;
+    }
+  }
+
   Future<Map<String, String>> getServerIdMappings() async {
     final mappings = <String, String>{};
     final records = await (select(

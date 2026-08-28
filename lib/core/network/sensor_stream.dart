@@ -14,6 +14,25 @@ abstract interface class SensorStream {
   Future<void> dispose();
 }
 
+/// A non-simulated fallback for builds that do not use the legacy sensor
+/// stream. Live trip monitoring is provided by the registered repository.
+class DisabledSensorStream implements SensorStream {
+  const DisabledSensorStream();
+
+  @override
+  Stream<SensorReading> watch() => const Stream<SensorReading>.empty();
+
+  @override
+  Future<SensorReading> latest() =>
+      Future.error(StateError('The legacy sensor stream is disabled.'));
+
+  @override
+  Future<List<SensorReading>> history() async => const [];
+
+  @override
+  Future<void> dispose() async {}
+}
+
 class MockSensorStream implements SensorStream {
   SensorReading _current = const SensorReading(
     productTemp: 2.1,

@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 
 import '../../../../app/theme/fishtrace_colors.dart';
 import '../../../../app/theme/fishtrace_dimensions.dart';
 import '../../../../core/widgets/fishtrace_widgets.dart';
+import '../../../../core/utils/fishtrace_time.dart';
 import '../controllers/fisher_controller.dart';
 import '../../../common/presentation/controllers/mobile_settings_controller.dart';
 import '../../../common/presentation/formatters/measurement_formatter.dart';
@@ -108,7 +108,7 @@ class MarineWeatherCard extends StatelessWidget {
             children: [
               Expanded(
                 child: Text(
-                  'Updated ${DateFormat('MMM d, hh:mm a').format(weather.observedAt)} · ${controller.activeTrip.value == null ? 'Current location' : 'Trip location'}',
+                  'Updated ${FishTraceTime.format(weather.observedAt, 'MMM d, hh:mm a')} · ${controller.activeTrip.value == null ? 'Current location' : 'Trip location'}',
                   style: Theme.of(context).textTheme.bodySmall,
                 ),
               ),

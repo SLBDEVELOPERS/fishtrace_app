@@ -84,12 +84,12 @@ final auditScreens = <AuditScreen>[
   (
     name: 'fisher_active_trip',
     role: UserRole.fisher,
-    builder: ActiveTripDetailsScreen.new,
+    builder: () => ActiveTripDetailsScreen(now: _auditNow),
   ),
   (
     name: 'fisher_add_catch',
     role: UserRole.fisher,
-    builder: AddCatchScreen.new,
+    builder: () => AddCatchScreen(now: _auditNow),
   ),
   (
     name: 'fisher_catch_history',
@@ -99,7 +99,7 @@ final auditScreens = <AuditScreen>[
   (
     name: 'fisher_create_batch',
     role: UserRole.fisher,
-    builder: CreateBatchScreen.new,
+    builder: () => CreateBatchScreen(now: _auditNow),
   ),
   (
     name: 'fisher_batch_details',
@@ -227,3 +227,5 @@ final auditScreens = <AuditScreen>[
     builder: SalesReportsScreen.new,
   ),
 ];
+
+DateTime _auditNow() => DateTime(2026, 8, 23, 12, 0);

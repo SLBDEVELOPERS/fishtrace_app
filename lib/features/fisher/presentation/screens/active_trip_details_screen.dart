@@ -15,7 +15,9 @@ import '../controllers/fisher_controller.dart';
 import '../widgets/marine_weather_card.dart';
 
 class ActiveTripDetailsScreen extends StatelessWidget {
-  const ActiveTripDetailsScreen({super.key});
+  const ActiveTripDetailsScreen({super.key, this.now = DateTime.now});
+
+  final DateTime Function() now;
 
   @override
   Widget build(BuildContext context) {
@@ -41,7 +43,7 @@ class ActiveTripDetailsScreen extends StatelessWidget {
             onAction: () => context.go('/fisher/start-trip'),
           );
         }
-        final duration = DateTime.now().difference(trip.startedAt);
+        final duration = now().difference(trip.startedAt);
         return ListView(
           padding: const EdgeInsets.all(FishTraceSpacing.md),
           children: [
@@ -49,7 +51,7 @@ class ActiveTripDetailsScreen extends StatelessWidget {
               children: [
                 Expanded(
                   child: Text(
-                    trip.id,
+                    trip.label,
                     style: Theme.of(context).textTheme.titleMedium,
                   ),
                 ),
@@ -169,13 +171,11 @@ class ActiveTripDetailsScreen extends StatelessWidget {
     if (!confirmed) return;
     await controller.queueOperation('End fishing trip', 'trip', {
       'tripId': controller.activeTrip.value!.id,
-      'completedAt': DateTime.now().toIso8601String(),
+      'completedAt': now().toIso8601String(),
     });
     await controller.completeActiveTrip();
     if (context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Trip completion queued for sync')),
-      );
+      FishTraceFeedback.warning(context, 'Trip completion queued for sync');
       context.go('/fisher');
     }
   }

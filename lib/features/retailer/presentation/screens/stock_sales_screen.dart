@@ -226,9 +226,7 @@ class _StockSalesScreenState extends State<StockSalesScreen>
       );
     } on ArgumentError catch (error) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('${error.message}')));
+        FishTraceFeedback.warning(context, '${error.message}');
       }
     } finally {
       if (mounted) setState(() => _saving = false);

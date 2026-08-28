@@ -124,7 +124,20 @@ class FishTraceBottomNavigation extends StatelessWidget {
       height: FishTraceSizes.bottomNavigation,
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surface,
-        border: Border(top: BorderSide(color: Theme.of(context).dividerColor)),
+        border: Border(
+          top: BorderSide(
+            color: Theme.of(
+              context,
+            ).colorScheme.outlineVariant.withValues(alpha: .55),
+          ),
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: FishTraceColors.navy.withValues(alpha: .06),
+            blurRadius: 18,
+            offset: const Offset(0, -4),
+          ),
+        ],
       ),
       child: Row(
         children: [
@@ -142,31 +155,48 @@ class FishTraceBottomNavigation extends StatelessWidget {
             child: Semantics(
               button: true,
               label: primaryActionLabel,
-              child: Center(
-                child: InkResponse(
-                  onTap: onPrimaryAction,
-                  radius: 30,
-                  child: Container(
-                    width: 48,
-                    height: 48,
-                    decoration: BoxDecoration(
-                      color: FishTraceColors.primary,
-                      shape: BoxShape.circle,
-                      border: Border.all(
-                        color: Theme.of(context).colorScheme.surface,
-                        width: 3,
-                      ),
-                      boxShadow: const [
-                        BoxShadow(
-                          color: Color(0x26004B5A),
-                          blurRadius: 8,
-                          offset: Offset(0, 3),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  InkResponse(
+                    onTap: onPrimaryAction,
+                    radius: 30,
+                    child: Container(
+                      width: 46,
+                      height: 46,
+                      decoration: BoxDecoration(
+                        color: FishTraceColors.primary,
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: Theme.of(context).colorScheme.surface,
+                          width: 3,
                         ),
-                      ],
+                        boxShadow: const [
+                          BoxShadow(
+                            color: Color(0x26004B5A),
+                            blurRadius: 8,
+                            offset: Offset(0, 3),
+                          ),
+                        ],
+                      ),
+                      child: const Icon(
+                        Icons.add,
+                        color: Colors.white,
+                        size: 25,
+                      ),
                     ),
-                    child: const Icon(Icons.add, color: Colors.white, size: 25),
                   ),
-                ),
+                  const SizedBox(height: 2),
+                  Text(
+                    primaryActionLabel,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                      color: FishTraceColors.primary,
+                      fontSize: 11,
+                    ),
+                  ),
+                ],
               ),
             ),
           ),
@@ -224,7 +254,7 @@ class _NavigationButton extends StatelessWidget {
               item.label,
               maxLines: 1,
               style: TextStyle(
-                fontSize: 10,
+                fontSize: 12,
                 fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
                 color: selected
                     ? FishTraceColors.primary

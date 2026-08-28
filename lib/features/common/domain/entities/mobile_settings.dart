@@ -11,9 +11,9 @@ class MobileSettings {
     @Deprecated('Use themeMode instead') bool? useDeviceTheme,
     this.measurementSystem = MeasurementSystem.metric,
     this.language = MobileLanguage.english,
-    this.temperatureAlerts = true,
-    this.workflowUpdates = true,
-    this.systemMessages = true,
+    this.temperatureAlerts = false,
+    this.workflowUpdates = false,
+    this.systemMessages = false,
   }) : themeMode =
            themeMode ??
            (useDeviceTheme == false ? AppThemeMode.light : AppThemeMode.system);

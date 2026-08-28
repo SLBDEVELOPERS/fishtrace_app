@@ -1,27 +1,48 @@
 import '../../../../core/network/api_client.dart';
 import '../../../../core/network/api_endpoints.dart';
 import '../../../../core/network/api_support.dart';
+import '../../../../core/network/offline_api_cache.dart';
 import '../../../../core/errors/app_exceptions.dart';
 import '../../domain/entities/retailer_entities.dart';
 import '../../domain/repositories/retailer_repository.dart';
 import '../dtos/retailer_dtos.dart';
 
 class DioRetailerRepository implements RetailerRepository {
-  DioRetailerRepository(this._api);
+  DioRetailerRepository(this._api, {OfflineApiCache? cache}) : _cache = cache;
   final ApiClient _api;
+  final OfflineApiCache? _cache;
+
+  Future<Object?> _get(
+    String path, {
+    Map<String, Object?>? query,
+    String? cacheKey,
+  }) {
+    Future<Object?> remote() => _api.get(path, query: query);
+    final cache = _cache;
+    return cache == null
+        ? remote()
+        : cache.readThrough(cacheKey ?? path, remote);
+  }
 
   Future<List<T>> _list<T>(
     String path,
     T Function(Map<String, Object?>) parser,
-  ) async => ApiData.list(await _api.get(path)).map(parser).toList();
+  ) async => ApiData.list(
+    await _get(path, cacheKey: 'retailer:$path'),
+  ).map(parser).toList();
 
   Future<Map<String, Object?>> _reportData(
     String path, {
     DateTime? dateFrom,
     DateTime? dateTo,
   }) async {
+    final query = _reportQuery(dateFrom, dateTo);
     final payload = ApiData.map(
-      await _api.get(path, query: _reportQuery(dateFrom, dateTo)),
+      await _get(
+        path,
+        query: query,
+        cacheKey: 'retailer:report:$path:${query ?? const {}}',
+      ),
     );
     return ApiData.map(payload['data']);
   }
@@ -49,9 +70,10 @@ class DioRetailerRepository implements RetailerRepository {
   @override
   Future<ReceivedRetailBatch?> findIncomingBatch(String scannedValue) async {
     try {
-      final response = await _api.get(
+      final response = await _get(
         ApiEndpoints.retailerResolveLabel,
         query: {'code': scannedValue},
+        cacheKey: 'retailer:resolve:$scannedValue',
       );
       final envelope = ApiData.map(response);
       return ReceivedBatchDto.fromJson(

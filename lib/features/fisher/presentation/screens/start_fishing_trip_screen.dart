@@ -134,16 +134,15 @@ class _StartFishingTripScreenState extends State<StartFishingTripScreen> {
   Future<void> _startTrip() async {
     if (!_formKey.currentState!.validate() || _boat == null) return;
     if (_latitude == null || _longitude == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Current fishing location is required')),
+      FishTraceFeedback.warning(
+        context,
+        'Current fishing location is required',
       );
       await _captureLocation();
       return;
     }
     if (_crew.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Select at least one crew member')),
-      );
+      FishTraceFeedback.warning(context, 'Select at least one crew member');
       return;
     }
     final confirmed = await showDialog<bool>(
@@ -182,6 +181,7 @@ class _StartFishingTripScreenState extends State<StartFishingTripScreen> {
     await _controller.startTrip(
       ActiveFishingTrip(
         id: _tripCode.text.trim(),
+        tripCode: _tripCode.text.trim(),
         boatId: _boat!.id,
         boatName: _boat!.name,
         startedAt: _departure,

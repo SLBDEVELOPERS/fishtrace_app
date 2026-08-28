@@ -177,108 +177,122 @@ class MapPreviewCard extends StatelessWidget {
             borderRadius: const BorderRadius.vertical(
               top: Radius.circular(FishTraceRadii.card),
             ),
-            child: FlutterMap(
-              options: MapOptions(
-                initialCenter: center,
-                initialZoom: start != null || destination != null ? 7 : 10,
-                initialCameraFit:
-                    (route.isNotEmpty || start != null || destination != null)
-                    ? CameraFit.coordinates(
-                        coordinates: [
-                          if (start != null) start!,
-                          ...route,
-                          center,
-                          if (destination != null) destination!,
-                        ],
-                        padding: const EdgeInsets.all(FishTraceSpacing.lg),
-                        maxZoom: 14,
-                      )
-                    : null,
-                interactionOptions: InteractionOptions(
-                  flags: interactive
-                      ? InteractiveFlag.all
-                      : InteractiveFlag.none,
+            child: Semantics(
+              label:
+                  'Map. ${caption ?? '${center.latitude.toStringAsFixed(4)} north, ${center.longitude.toStringAsFixed(4)} east'}',
+              hint: interactive
+                  ? 'Use touch gestures to explore the route.'
+                  : null,
+              image: !interactive,
+              child: FlutterMap(
+                options: MapOptions(
+                  initialCenter: center,
+                  initialZoom: start != null || destination != null ? 7 : 10,
+                  initialCameraFit:
+                      (route.isNotEmpty || start != null || destination != null)
+                      ? CameraFit.coordinates(
+                          coordinates: [
+                            if (start != null) start!,
+                            ...route,
+                            center,
+                            if (destination != null) destination!,
+                          ],
+                          padding: const EdgeInsets.all(FishTraceSpacing.lg),
+                          maxZoom: 14,
+                        )
+                      : null,
+                  interactionOptions: InteractionOptions(
+                    flags: interactive
+                        ? InteractiveFlag.all
+                        : InteractiveFlag.none,
+                  ),
                 ),
-              ),
-              children: [
-                TileLayer(
-                  urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                  userAgentPackageName: 'com.fishtrace.app',
-                  maxNativeZoom: 19,
-                ),
-                if (route.length > 1)
-                  PolylineLayer(
-                    polylines: [
-                      Polyline(
-                        points: route,
-                        color: FishTraceColors.primary,
-                        strokeWidth: 3,
-                        pattern: const StrokePattern.dotted(),
+                children: [
+                  TileLayer(
+                    urlTemplate:
+                        'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                    userAgentPackageName: 'com.fishtrace.app',
+                    maxNativeZoom: 19,
+                  ),
+                  const RichAttributionWidget(
+                    attributions: [
+                      TextSourceAttribution('© OpenStreetMap contributors'),
+                    ],
+                  ),
+                  if (route.length > 1)
+                    PolylineLayer(
+                      polylines: [
+                        Polyline(
+                          points: route,
+                          color: FishTraceColors.primary,
+                          strokeWidth: 3,
+                          pattern: const StrokePattern.dotted(),
+                        ),
+                      ],
+                    ),
+                  MarkerLayer(
+                    markers: [
+                      if (start != null)
+                        Marker(
+                          point: start!,
+                          width: 40,
+                          height: 40,
+                          child: const Tooltip(
+                            message: 'Trip origin',
+                            child: Icon(
+                              Icons.trip_origin,
+                              color: FishTraceColors.success,
+                              size: 28,
+                            ),
+                          ),
+                        ),
+                      if (destination != null)
+                        Marker(
+                          point: destination!,
+                          width: 40,
+                          height: 40,
+                          child: const Tooltip(
+                            message: 'Trip destination',
+                            child: Icon(
+                              Icons.flag,
+                              color: FishTraceColors.error,
+                              size: 30,
+                            ),
+                          ),
+                        ),
+                      Marker(
+                        point: center,
+                        width: 36,
+                        height: 36,
+                        child: Tooltip(
+                          message: 'Current position',
+                          child: Icon(
+                            markerIcon,
+                            color: FishTraceColors.primary,
+                            size: 32,
+                          ),
+                        ),
                       ),
                     ],
                   ),
-                MarkerLayer(
-                  markers: [
-                    if (start != null)
-                      Marker(
-                        point: start!,
-                        width: 40,
-                        height: 40,
-                        child: const Tooltip(
-                          message: 'Trip origin',
-                          child: Icon(
-                            Icons.trip_origin,
-                            color: FishTraceColors.success,
-                            size: 28,
+                  if (interactive)
+                    Builder(
+                      builder: (mapContext) => Align(
+                        alignment: Alignment.bottomRight,
+                        child: Padding(
+                          padding: const EdgeInsets.all(FishTraceSpacing.sm),
+                          child: FloatingActionButton.small(
+                            heroTag: null,
+                            tooltip: 'Center on current position',
+                            onPressed: () =>
+                                MapController.of(mapContext).move(center, 14),
+                            child: const Icon(Icons.my_location),
                           ),
                         ),
                       ),
-                    if (destination != null)
-                      Marker(
-                        point: destination!,
-                        width: 40,
-                        height: 40,
-                        child: const Tooltip(
-                          message: 'Trip destination',
-                          child: Icon(
-                            Icons.flag,
-                            color: FishTraceColors.error,
-                            size: 30,
-                          ),
-                        ),
-                      ),
-                    Marker(
-                      point: center,
-                      width: 36,
-                      height: 36,
-                      child: Tooltip(
-                        message: 'Current position',
-                        child: Icon(
-                          markerIcon,
-                          color: FishTraceColors.primary,
-                          size: 32,
-                        ),
-                      ),
                     ),
-                  ],
-                ),
-                if (interactive)
-                  Builder(
-                    builder: (mapContext) => Align(
-                      alignment: Alignment.bottomRight,
-                      child: Padding(
-                        padding: const EdgeInsets.all(FishTraceSpacing.sm),
-                        child: FloatingActionButton.small(
-                          heroTag: null,
-                          tooltip: 'Center on current position',
-                          onPressed: () =>
-                              MapController.of(mapContext).move(center, 14),
-                          child: const Icon(Icons.my_location),
-                        ),
-                      ),
-                    ),
-                  ),
-              ],
+                ],
+              ),
             ),
           ),
         ),
@@ -344,26 +358,26 @@ class ChartCard extends StatelessWidget {
                 ? const Center(child: Text('Not enough readings'))
                 : LineChart(
                     LineChartData(
-                      gridData: const FlGridData(
-                        drawVerticalLine: false,
-                        horizontalInterval: 1,
-                      ),
+                      gridData: const FlGridData(drawVerticalLine: false),
                       borderData: FlBorderData(show: false),
-                      titlesData: const FlTitlesData(
-                        topTitles: AxisTitles(),
-                        rightTitles: AxisTitles(),
+                      titlesData: FlTitlesData(
+                        topTitles: const AxisTitles(),
+                        rightTitles: const AxisTitles(),
                         leftTitles: AxisTitles(
                           sideTitles: SideTitles(
                             showTitles: true,
-                            reservedSize: 30,
+                            reservedSize: 44,
+                            getTitlesWidget: (value, meta) => SideTitleWidget(
+                              meta: meta,
+                              child: Text(
+                                value.toStringAsFixed(1),
+                                maxLines: 1,
+                                style: Theme.of(context).textTheme.labelSmall,
+                              ),
+                            ),
                           ),
                         ),
-                        bottomTitles: AxisTitles(
-                          sideTitles: SideTitles(
-                            showTitles: true,
-                            reservedSize: 22,
-                          ),
-                        ),
+                        bottomTitles: const AxisTitles(),
                       ),
                       lineBarsData: [
                         LineChartBarData(

@@ -5,12 +5,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:go_router/go_router.dart';
-import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
 
 import '../../../../app/theme/fishtrace_colors.dart';
 import '../../../../app/theme/fishtrace_dimensions.dart';
 import '../../../../core/models/models.dart';
+import '../../../../core/utils/fishtrace_time.dart';
 import '../../../../core/widgets/fishtrace_widgets.dart';
 import '../../../common/presentation/widgets/role_bottom_bar.dart';
 import '../../domain/entities/processor_entities.dart';
@@ -80,23 +80,21 @@ class _IntakeBody extends StatelessWidget {
               child: StatusChip(label: 'New Intake'),
             ),
             const SizedBox(height: 8),
-            Text('Batch ID', style: Theme.of(context).textTheme.bodySmall),
+            Text('Batch code', style: Theme.of(context).textTheme.bodySmall),
             Row(
               children: [
                 Expanded(
                   child: Text(
-                    batch.id,
+                    batch.label,
                     style: Theme.of(context).textTheme.titleLarge,
                   ),
                 ),
                 IconButton(
-                  tooltip: 'Copy batch ID',
+                  tooltip: 'Copy batch code',
                   onPressed: () async {
-                    await Clipboard.setData(ClipboardData(text: batch.id));
+                    await Clipboard.setData(ClipboardData(text: batch.label));
                     if (context.mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Batch ID copied')),
-                      );
+                      FishTraceFeedback.success(context, 'Batch code copied');
                     }
                   },
                   icon: const Icon(Icons.copy_outlined, size: 18),
@@ -141,9 +139,10 @@ class _IntakeBody extends StatelessWidget {
                   _DetailRow(label: 'Supplier', value: batch.supplier),
                   _DetailRow(
                     label: 'Catch Date',
-                    value: DateFormat(
+                    value: FishTraceTime.format(
+                      batch.catchDate,
                       'MMM d, yyyy · hh:mm a',
-                    ).format(batch.catchDate),
+                    ),
                   ),
                   _DetailRow(
                     label: 'Temperature',
@@ -152,9 +151,10 @@ class _IntakeBody extends StatelessWidget {
                   ),
                   _DetailRow(
                     label: 'Received At',
-                    value: DateFormat(
+                    value: FishTraceTime.format(
+                      batch.receivedAt,
                       'MMM d, yyyy · hh:mm a',
-                    ).format(batch.receivedAt),
+                    ),
                   ),
                 ],
               ),
@@ -197,9 +197,11 @@ class _IntakeBody extends StatelessWidget {
       ),
       Container(
         padding: const EdgeInsets.fromLTRB(16, 10, 16, 12),
-        decoration: const BoxDecoration(
-          color: FishTraceColors.surface,
-          border: Border(top: BorderSide(color: FishTraceColors.border)),
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.surface,
+          border: Border(
+            top: BorderSide(color: Theme.of(context).dividerColor),
+          ),
         ),
         child: Row(
           children: [
@@ -233,7 +235,7 @@ class _IntakeBody extends StatelessWidget {
         ),
         title: const Text('Accept this batch?'),
         content: Text(
-          '${batch.id} will enter the processing queue at ${batch.weightKg} kg.',
+          '${batch.label} will enter the processing queue at ${batch.weightKg} kg.',
         ),
         actions: [
           TextButton(
@@ -251,13 +253,18 @@ class _IntakeBody extends StatelessWidget {
     final queued = await controller.acceptSelected();
     if (!context.mounted || queued == null) return;
     if (queued.status == SyncStatus.failed) {
-      _message(context, queued.lastError ?? 'The batch could not be accepted.');
+      _message(
+        context,
+        queued.lastError ?? 'The batch could not be accepted.',
+        tone: FishTraceFeedbackTone.error,
+      );
       return;
     }
     if (queued.status != SyncStatus.synced) {
       _message(
         context,
         'Acceptance is queued. Processing can start after it syncs.',
+        tone: FishTraceFeedbackTone.warning,
       );
       return;
     }
@@ -277,11 +284,19 @@ class _IntakeBody extends StatelessWidget {
       final path = '${directory.path}${Platform.pathSeparator}$safeName';
       await Get.find<Dio>().download(document.downloadUrl, path);
       if (context.mounted) {
-        _message(context, 'Document downloaded to $path');
+        _message(
+          context,
+          'Document downloaded to $path',
+          tone: FishTraceFeedbackTone.success,
+        );
       }
     } catch (_) {
       if (context.mounted) {
-        _message(context, 'The document could not be downloaded.');
+        _message(
+          context,
+          'The document could not be downloaded.',
+          tone: FishTraceFeedbackTone.error,
+        );
       }
     }
   }
@@ -346,6 +361,7 @@ class _IntakeBody extends StatelessWidget {
                       _message(
                         context,
                         queued.lastError ?? 'The batch could not be rejected.',
+                        tone: FishTraceFeedbackTone.error,
                       );
                       return;
                     }
@@ -353,6 +369,7 @@ class _IntakeBody extends StatelessWidget {
                       _message(
                         context,
                         'Rejection is queued and will finish when online.',
+                        tone: FishTraceFeedbackTone.warning,
                       );
                       return;
                     }
@@ -369,9 +386,11 @@ class _IntakeBody extends StatelessWidget {
     notes.dispose();
   }
 
-  void _message(BuildContext context, String message) => ScaffoldMessenger.of(
-    context,
-  ).showSnackBar(SnackBar(content: Text(message)));
+  void _message(
+    BuildContext context,
+    String message, {
+    FishTraceFeedbackTone tone = FishTraceFeedbackTone.info,
+  }) => FishTraceFeedback.show(context, message, tone: tone);
 }
 
 class _DetailRow extends StatelessWidget {

@@ -9,12 +9,20 @@ import 'package:get/get.dart';
 import 'helpers/audit_screen_catalog.dart';
 import 'helpers/test_dependencies.dart';
 
-const _captureAudit = bool.fromEnvironment('CAPTURE_AUDIT');
-
 void main() {
   String? auditFontFamily;
+  const geolocatorChannel = MethodChannel('flutter.baseflow.com/geolocator');
 
   setUpAll(() async {
+    final materialIcons = FontLoader('MaterialIcons')
+      ..addFont(rootBundle.load('fonts/MaterialIcons-Regular.otf'));
+    await materialIcons.load();
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(
+          geolocatorChannel,
+          (call) async =>
+              call.method == 'isLocationServiceEnabled' ? false : null,
+        );
     final font = File(r'C:\Windows\Fonts\arial.ttf');
     if (await font.exists()) {
       final bytes = await font.readAsBytes();
@@ -33,6 +41,11 @@ void main() {
     }
   });
 
+  tearDownAll(() async {
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(geolocatorChannel, null);
+  });
+
   test('audit catalogue contains exactly 40 primary screens', () {
     expect(auditScreens, hasLength(40));
     expect(auditScreens.map((screen) => screen.name).toSet(), hasLength(40));
@@ -47,13 +60,7 @@ void main() {
       registerTestDependencies(role: screen.role);
       addTearDown(Get.reset);
 
-      final baseTheme = buildFishTraceTheme();
-      final auditTheme = baseTheme.copyWith(
-        textTheme: baseTheme.textTheme.apply(fontFamily: auditFontFamily),
-        primaryTextTheme: baseTheme.primaryTextTheme.apply(
-          fontFamily: auditFontFamily,
-        ),
-      );
+      final auditTheme = buildFishTraceTheme(fontFamily: auditFontFamily);
       await tester.pumpWidget(
         MaterialApp(
           debugShowCheckedModeBanner: false,
@@ -66,20 +73,10 @@ void main() {
       );
       await tester.pump(const Duration(milliseconds: 350));
       expect(tester.takeException(), isNull);
-      if (_captureAudit) {
-        await expectLater(
-          find.byKey(const ValueKey('audit-boundary')),
-          matchesGoldenFile('goldens/final_audit/${screen.name}.png'),
-        );
-        return;
-      }
-      final capture = File('test/goldens/final_audit/${screen.name}.png');
-      expect(
-        capture.existsSync(),
-        isTrue,
-        reason: 'Missing 390x844 capture for ${screen.name}',
+      await expectLater(
+        find.byKey(const ValueKey('audit-boundary')),
+        matchesGoldenFile('goldens/final_audit/${screen.name}.png'),
       );
-      expect(capture.lengthSync(), greaterThan(1000));
     });
   }
 }

@@ -1,6 +1,7 @@
 import 'package:fishtrace/app/theme/fishtrace_theme.dart';
 import 'package:fishtrace/core/models/models.dart';
 import 'package:fishtrace/features/retailer/presentation/controllers/retailer_controller.dart';
+import 'package:fishtrace/features/transporter/presentation/controllers/transporter_controller.dart';
 import 'package:fishtrace/features/transporter/presentation/screens/batch_device_vehicle_screens.dart';
 import 'package:fishtrace/features/transporter/presentation/screens/checklist_monitoring_delivery_screens.dart';
 import 'package:flutter/material.dart';
@@ -14,6 +15,13 @@ void main() {
 
   testWidgets('incomplete pre-trip checklist is blocked', (tester) async {
     registerTestDependencies(role: UserRole.transporter);
+    tester.view.devicePixelRatio = 1;
+    tester.view.physicalSize = const Size(390, 844);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    addTearDown(tester.view.resetPhysicalSize);
+    final controller = Get.find<TransporterController>();
+    await controller.load();
+    controller.selectedTrip.value = controller.trips[1];
     await tester.pumpWidget(
       MaterialApp(
         theme: buildFishTraceTheme(),
@@ -26,23 +34,37 @@ void main() {
     expect(find.textContaining('mandatory'), findsOneWidget);
   });
 
-  testWidgets('mock QR scan validates and exposes Add to Trip', (tester) async {
+  testWidgets('manual batch entry validates and exposes Add to Trip', (
+    tester,
+  ) async {
     registerTestDependencies(role: UserRole.transporter);
+    tester.view.devicePixelRatio = 1;
+    tester.view.physicalSize = const Size(390, 844);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    addTearDown(tester.view.resetPhysicalSize);
+    final controller = Get.find<TransporterController>();
+    await controller.load();
+    controller.selectedTrip.value = controller.trips[1];
     await tester.pumpWidget(
       MaterialApp(
         theme: buildFishTraceTheme(),
         home: const TransportScanBatchScreen(),
       ),
     );
-    await tester.tap(find.text('Mock Scan'));
-    await tester.pump();
+    await tester.enterText(
+      find.widgetWithText(TextFormField, 'e.g. FTB-2026-001'),
+      'BATCH-BAT-1001',
+    );
+    await tester.ensureVisible(find.byTooltip('Validate batch code'));
+    await tester.tap(find.byTooltip('Validate batch code'));
+    await tester.pumpAndSettle();
     await tester.scrollUntilVisible(
-      find.text('Add to Trip'),
+      find.text('Accept Handover & Add to Trip'),
       240,
       scrollable: find.byType(Scrollable).first,
     );
     expect(find.text('Valid'), findsOneWidget);
-    expect(find.text('Add to Trip'), findsOneWidget);
+    expect(find.text('Accept Handover & Add to Trip'), findsOneWidget);
   });
 
   test(

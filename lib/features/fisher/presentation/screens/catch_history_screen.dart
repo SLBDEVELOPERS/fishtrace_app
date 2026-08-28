@@ -40,7 +40,7 @@ class CatchHistoryScreen extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
             child: FishTraceSearchField(
-              hint: 'Search species or catch ID',
+              hint: 'Search by species',
               onChanged: (value) => controller.catchSearch.value = value,
             ),
           ),
@@ -100,9 +100,11 @@ class CatchHistoryScreen extends StatelessWidget {
           Obx(
             () => Container(
               padding: const EdgeInsets.fromLTRB(16, 11, 16, 12),
-              decoration: const BoxDecoration(
-                color: FishTraceColors.surface,
-                border: Border(top: BorderSide(color: FishTraceColors.border)),
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.surface,
+                border: Border(
+                  top: BorderSide(color: Theme.of(context).dividerColor),
+                ),
               ),
               child: Row(
                 children: [
@@ -219,7 +221,7 @@ class CatchHistoryScreen extends StatelessWidget {
                 ),
                 _DetailRow(
                   label: 'Linked batch',
-                  value: catchRecord.linkedBatchId ?? 'Not linked',
+                  value: catchRecord.linkedBatchLabel ?? 'Not linked',
                 ),
               ],
             ),
@@ -231,10 +233,9 @@ class CatchHistoryScreen extends StatelessWidget {
               icon: Icons.edit_outlined,
               onPressed: () {
                 Navigator.pop(sheetContext);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Only locally pending fields can be edited.'),
-                  ),
+                FishTraceFeedback.info(
+                  context,
+                  'Only locally pending fields can be edited.',
                 );
               },
             ),
@@ -384,9 +385,9 @@ class _AuthenticatedCatchImageState extends State<_AuthenticatedCatchImage> {
           return Image.memory(snapshot.data!, fit: widget.fit);
         }
         if (snapshot.hasError) return const _PhotoLoadError();
-        return const ColoredBox(
-          color: FishTraceColors.surfaceMuted,
-          child: Center(child: CircularProgressIndicator()),
+        return ColoredBox(
+          color: Theme.of(context).colorScheme.surfaceContainerHighest,
+          child: const Center(child: CircularProgressIndicator()),
         );
       },
     );
@@ -397,9 +398,9 @@ class _PhotoLoadError extends StatelessWidget {
   const _PhotoLoadError();
 
   @override
-  Widget build(BuildContext context) => const ColoredBox(
-    color: FishTraceColors.surfaceMuted,
-    child: Center(child: Icon(Icons.broken_image_outlined)),
+  Widget build(BuildContext context) => ColoredBox(
+    color: Theme.of(context).colorScheme.surfaceContainerHighest,
+    child: const Center(child: Icon(Icons.broken_image_outlined)),
   );
 }
 

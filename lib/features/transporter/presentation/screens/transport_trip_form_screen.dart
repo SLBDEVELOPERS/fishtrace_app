@@ -97,10 +97,9 @@ class _TransportTripFormScreenState extends State<TransportTripFormScreen> {
       if (mounted) context.go('/transporter/trip-details');
     } catch (error) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(error.toString().replaceFirst('Bad state: ', '')),
-          ),
+        FishTraceFeedback.error(
+          context,
+          error.toString().replaceFirst('Bad state: ', ''),
         );
       }
     } finally {
@@ -354,10 +353,9 @@ class _RouteLocationPickerState extends State<_RouteLocationPicker> {
       _mapController.move(position, 15);
     } catch (error) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(error.toString().replaceFirst('Bad state: ', '')),
-          ),
+        FishTraceFeedback.error(
+          context,
+          error.toString().replaceFirst('Bad state: ', ''),
         );
       }
     } finally {
@@ -393,6 +391,11 @@ class _RouteLocationPickerState extends State<_RouteLocationPicker> {
               TileLayer(
                 urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
                 userAgentPackageName: 'com.fishtrace.app',
+              ),
+              const RichAttributionWidget(
+                attributions: [
+                  TextSourceAttribution('© OpenStreetMap contributors'),
+                ],
               ),
               if (_selected != null)
                 MarkerLayer(

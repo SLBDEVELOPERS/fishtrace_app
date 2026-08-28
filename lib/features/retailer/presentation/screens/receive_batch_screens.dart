@@ -176,9 +176,9 @@ class _ReceiveBatchScreenState extends State<ReceiveBatchScreen> {
             FishTraceSecondaryButton(label: 'Live Scanner', onPressed: _scan),
           ] else
             FishTraceTextField(
-              label: 'Batch ID',
+              label: 'Batch code or QR value',
               controller: _manual,
-              hint: 'Enter batch ID',
+              hint: 'e.g. FTB-2026-001',
               suffixIcon: IconButton(
                 onPressed: () => _find(_manual.text),
                 icon: const Icon(Icons.search),
@@ -189,7 +189,7 @@ class _ReceiveBatchScreenState extends State<ReceiveBatchScreen> {
             FishTraceCard(
               child: Column(
                 children: [
-                  _DataRow(label: 'Batch ID', value: batch.id),
+                  _DataRow(label: 'Package label', value: batch.label),
                   _DataRow(label: 'Supplier', value: batch.supplier),
                   _DataRow(label: 'Product', value: batch.product),
                   _DataRow(
