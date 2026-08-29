@@ -8,6 +8,7 @@ import '../../../../app/theme/fishtrace_dimensions.dart';
 import '../../../../core/models/models.dart';
 import '../../../../core/widgets/fishtrace_widgets.dart';
 import '../../../common/presentation/widgets/role_bottom_bar.dart';
+import '../../domain/entities/processor_entities.dart';
 import '../controllers/processor_controller.dart';
 
 class SplitPackScreen extends StatefulWidget {
@@ -75,6 +76,10 @@ class _SplitPackScreenState extends State<SplitPackScreen> {
 
   int get _packageCount => _recordedPackageCount;
 
+  List<ProcessingJob> get _completedJobs => _controller.history
+      .where((job) => job.status == BatchStatus.completed)
+      .toList(growable: false);
+
   List<double> get _weights {
     if (_recordedPackageCount <= 0 || _inputWeight <= 0) return const [];
     final packageWeight = _size;
@@ -84,6 +89,84 @@ class _SplitPackScreenState extends State<SplitPackScreen> {
             ? _inputWeight - packageWeight * index
             : packageWeight,
     ];
+  }
+
+  Future<void> _selectParent(ProcessingJob job) async {
+    _controller.selectProcessingJob(job);
+    _controller.generatedChildren.clear();
+    setState(() {});
+    try {
+      await _controller.refreshChildBatches(job.batchId);
+    } catch (error) {
+      if (mounted) {
+        FishTraceFeedback.error(
+          context,
+          'Could not load existing package labels: $error',
+        );
+      }
+    }
+  }
+
+  Widget _buildParentSelection() {
+    final jobs = _completedJobs;
+    if (jobs.isEmpty) {
+      return EmptyState(
+        title: 'No batch is ready for packing',
+        message: 'Complete processing and pass quality inspection first.',
+        icon: Icons.call_split_outlined,
+        actionLabel: 'Processing History',
+        onAction: () => context.go('/processor/history'),
+      );
+    }
+
+    return ListView(
+      padding: const EdgeInsets.all(FishTraceSpacing.md),
+      children: [
+        Text(
+          'Select a completed batch',
+          style: Theme.of(context).textTheme.titleLarge,
+        ),
+        const SizedBox(height: 4),
+        Text(
+          'Only batches that passed quality inspection can be split and packed.',
+          style: Theme.of(context).textTheme.bodyMedium,
+        ),
+        const SectionHeader(title: 'Ready for Split / Pack'),
+        for (final job in jobs)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 8),
+            child: FishTraceCard(
+              onTap: () => _selectParent(job),
+              child: Row(
+                children: [
+                  const Icon(
+                    Icons.inventory_2_outlined,
+                    color: FishTraceColors.primary,
+                    size: 28,
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          job.batchLabel,
+                          style: Theme.of(context).textTheme.titleSmall,
+                        ),
+                        Text(
+                          '${job.species} · ${job.outputWeightKg.toStringAsFixed(1)} kg · ${job.packageCount} packages',
+                          style: Theme.of(context).textTheme.bodySmall,
+                        ),
+                      ],
+                    ),
+                  ),
+                  const Icon(Icons.chevron_right),
+                ],
+              ),
+            ),
+          ),
+      ],
+    );
   }
 
   Future<void> _generate() async {
@@ -159,27 +242,12 @@ class _SplitPackScreenState extends State<SplitPackScreen> {
       selectedIndex: 1,
     ),
     body: Obx(() {
-      if (_controller.selectedBatch.value == null) {
-        return EmptyState(
-          title: 'No processed batch selected',
-          message: 'Complete processing and inspection before splitting.',
-          icon: Icons.call_split_outlined,
-          actionLabel: 'Processing History',
-          onAction: () => context.go('/processor/history'),
-        );
-      }
-      final processing = _controller.processingFor(
-        _controller.selectedBatch.value!.id,
-      );
+      final selected = _controller.selectedBatch.value;
+      final processing = selected == null
+          ? null
+          : _controller.processingFor(selected.id);
       if (processing == null || processing.status != BatchStatus.completed) {
-        return EmptyState(
-          title: 'Batch is not ready for packing',
-          message:
-              'Complete processing and pass quality inspection before generating labels.',
-          icon: Icons.lock_outline,
-          actionLabel: 'Processing History',
-          onAction: () => context.go('/processor/history'),
-        );
+        return _buildParentSelection();
       }
       if (_controller.generatedChildren.isNotEmpty) {
         return ListView(

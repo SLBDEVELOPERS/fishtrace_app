@@ -103,7 +103,7 @@ class ProcessorDashboardScreen extends StatelessWidget {
                       _QuickAction(
                         icon: Icons.call_split,
                         label: 'Split / Pack',
-                        onTap: () => context.go('/processor/history'),
+                        onTap: () => context.go('/processor/split-pack'),
                       ),
                       const SizedBox(width: 7),
                       _QuickAction(
